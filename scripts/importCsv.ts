@@ -41,19 +41,54 @@ async function run() {
             // console.log("Processing row:", rows[0]);
             const row = rows[0]
 
-            console.log("Product Id: ", row.product_id)
-            console.log("Movement type: ", row.movement_type)
-            console.log("Transaction date: ", row.transaction_date)
-
                     // 👉 Parse the data types
             const movementType = parseMovementType(row.movement_type);
             const transactionDate = parseDate(row.transaction_date);
-            const quantityOrdered = parseNumber(row.quantity_ordered_units);
             
-            console.log("\n✅ Parsed values:");
-            console.log("Movement Type (enum):", movementType);
-            console.log("Transaction Date (Date):", transactionDate);
-            console.log("Quantity Ordered (number):", quantityOrdered);
+            console.log("\n Upserting Product...");
+
+            const product = await prisma.product.upsert({
+                where: { productCode: row.product_id},
+                update: {},
+                create: {
+                    productCode: row.product_id,
+                    category: row. category_id,
+                    unitOfMeasure: row.unit_of_measure,
+                    reorderPoint: parseNumber(row.reorder_point_units),
+                    leadTimeDays: parseNumber(row.lead_time_buffer_days),
+                    status: "ACTIVE"
+                }
+            })
+
+            console.log("Product created or found: ", product.productCode);
+
+            console.log("Upserting Region...");
+            const region = await prisma.region.upsert({
+                where: {name: row.region},
+                update: {},
+                create: {name: row.region}
+            })
+
+            console.log("Region created or found: ", region.name);
+
+            console.log("Upserting Supplier...");
+            const supplier = await prisma.supplier.upsert({
+                where: {name: row.supplier_id},
+                update: {},
+                create: {name: row.supplier_id}
+            })
+
+            console.log("Supplier created or found: ", supplier.name)
+
+            console.log("Upserting Customer...");
+            const customer = await prisma.customer.upsert({
+                where: {code: row.customer_id},
+                update: {},
+                create: {code: row.customer_id}
+            })
+
+            console.log("Customer created or found: ", customer.code)
+
 
             await prisma.$disconnect();
             await pool.end();
