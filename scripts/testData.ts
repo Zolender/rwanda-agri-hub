@@ -27,11 +27,11 @@ async function test() {
     console.log(`Customers: ${customerCount}`);
     console.log(`Transactions: ${transactionCount}`);
 
-    console.log("\n📦 Sample Products:");
+    console.log("\n Sample Products:");
     const products = await prisma.product.findMany({ take: 3 });
     products.forEach(p => console.log(`  - ${p.productCode} (${p.category})`));
 
-    console.log("\n💰 Recent Transactions:");
+    console.log("\n Recent Transactions:");
     const transactions = await prisma.transaction.findMany({
         take: 3,
         orderBy: { transactionDate: 'desc' },
