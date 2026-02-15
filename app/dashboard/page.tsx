@@ -28,6 +28,8 @@ interface ApiResponse {
 export default function Dashboard() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isFirstLoad, setIsFirstLoad] = useState(true)
+    const [statsKey, setStatsKey] = useState(0)
     const [filters, setFilters] = useState({
         region: '',
         movementType: ''
@@ -47,7 +49,7 @@ export default function Dashboard() {
 
     //gsap animations
     useEffect(() => {
-        if(!loading){
+        if(!loading && isFirstLoad){
             const tl = gsap.timeline();
 
             tl.from(headerRef.current, {
@@ -75,8 +77,29 @@ export default function Dashboard() {
                 duration: 0.6,
                 ease: "power2.out"
             }, "-=0.2")
+
+            setIsFirstLoad(false)
         }
-    }, [loading])
+    }, [loading, isFirstLoad])
+
+    useEffect(()=>{
+        if(!isFirstLoad && statsKey > 1 && statsRef.current){
+            gsap.fromTo(
+                statsRef.current.children,
+                {
+                    opacity: 0,
+                    scale: 0.98
+                },
+                {
+                    opacity: 1,
+                    scale: 1,
+                    duration: 0.4,
+                    stagger: 0.08,
+                    ease: "power2.out"
+                }
+            )
+        }
+    }, [statsKey, isFirstLoad]);
 
 
 
@@ -93,6 +116,8 @@ export default function Dashboard() {
             if(data.success){
                 setTransactions(data.data);
             }
+
+            setStatsKey(prev=> prev + 1)
 
         }catch(error){
             console.error("Error fetching transactions:", error);
@@ -120,7 +145,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8 ">
             <div className="max-w-7xl mx-auto space-y-6">
                 <div ref={headerRef} className="text-center sm:text-left">
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
@@ -130,7 +155,7 @@ export default function Dashboard() {
                         Inventory Managment Dashboard
                     </p>
                 </div>
-                <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
                         <p className="text-slate-600 text-sm font-medium mb-1">Total Transactions</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
@@ -231,7 +256,10 @@ export default function Dashboard() {
                                                 {transaction.movementType}
                                             </span>
                                         </td>
-                                        <td className="px-4 py3 text-sm text-slate-900 text-right hidden lg:table-cell">
+                                        <td className="px-4 py-3 text-sm text-slate-900 text-right hidden lg:table-cell">
+                                            {transaction.quantityFulfilled}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-right font-medium text-slate-900">
                                             {transaction.sellingPriceRwf.toLocaleString()}
                                         </td>
                                     </tr>
