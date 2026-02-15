@@ -89,6 +89,31 @@ async function run() {
 
             console.log("Customer created or found: ", customer.code)
 
+            console.log("Creating transaction....")
+
+            await prisma.transaction.create({
+                data: {
+                    transactionDate: transactionDate,
+                    movementType: movementType,
+                    quantityOrdered: parseNumber(row.quantity_ordered_units),
+                    quantityFulfilled: parseNumber(row.quantity_fulfilled_units),
+                    lostSaleQty: parseNumber(row.lost_sale_qty_units),
+                    remainingStock: parseNumber(row.remanining_stock_units),
+                    unitCostRwf: parseNumber(row.unit_cost_rwf),
+                    sellingPriceRwf: parseNumber(row.selling_price_rwf),
+                    landedCostRwf: parseNumber(row.landed_cost_rwf),
+                    orderId: row.order_id,
+                    poId: row.po_id,
+
+                    productId: product.id,
+                    supplierId: supplier.id,
+                    customerId: customer.id,
+                    regionId: region.id
+
+                }
+            })
+
+            console.log("Transaction created successfully !")
 
             await prisma.$disconnect();
             await pool.end();
