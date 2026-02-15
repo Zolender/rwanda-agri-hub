@@ -118,4 +118,20 @@ export default function Dashboard() {
             </div>
         )
     }
+
+    return (
+        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <div ref={headerRef} className="text-center sm:text-left">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
+                        Rwanda Agri Hub
+                    </h1>
+                    <p className="text-slate-600 text-sm sm:text-base">
+                        Inventory Managment Dashboard
+                    </p>
+                </div>
+                
+            </div>
+        </div>
+    )
 }
