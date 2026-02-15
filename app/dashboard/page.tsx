@@ -190,7 +190,56 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                
+                <div ref={tableRef} className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50 border-b border-slate-200">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Product</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Region</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Quantity</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Price in RWF</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                                {transactions.map((transaction) => (
+                                    <tr key={transaction.id} className="hover:bg-slate-50 transition-colors">
+                                        <td className="px-4 py-3 text-sm text-slate-900">
+                                            {new Date(transaction.transactionDate).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <div className="text-sm font-medium text-slate-900">
+                                                {transaction.product.productCode}
+                                            </div>
+                                            <div className="text-xs text-slate-500">
+                                                {transaction.product.category}
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-3 text-sm text-slate-600 hidden sm:table-cell">
+                                            {transaction.region.name}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                transaction.movementType === 'SALE'
+                                                ? "bg-emerald-100 text-emerald-800"
+                                                : transaction.movementType === "PURCHASE"
+                                                ? 'bg-blue-100 text-blue-800'
+                                                : "bg-amber-100 text-amber-800"
+                                            }`}>
+                                                {transaction.movementType}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py3 text-sm text-slate-900 text-right hidden lg:table-cell">
+                                            {transaction.sellingPriceRwf.toLocaleString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     )
