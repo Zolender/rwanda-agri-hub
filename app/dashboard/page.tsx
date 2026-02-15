@@ -131,20 +131,66 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
                         <p className="text-slate-600 text-sm font-medium mb-1">Total Transactions</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
                         <p className="text-slate-600 text-sm font-medium mb-1">Sales</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.sales}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
                         <p className="text-slate-600 text-sm font-medium mb-1">Revenues (RWF)</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.revenue.toLocaleString()}</p>
                     </div>
-
                 </div>
+
+                <div ref={filtersRef} className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+                    <h2 className="text-lg font-semibold text-slate-900 mb-4">Filters</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Region
+                            </label>
+                            <select 
+                            className="w-full px-4 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
+                            value={filters.region}
+                            onChange={(e)=> setFilters({...filters, region: e.target.value})}
+                            >
+                                <option value="">All Regions</option>
+                                <option value="Musanze">Musanze</option>
+                                <option value="Huye">Huye</option>
+                                <option value="Kigali">Kigali</option>
+                                <option value="Rubavu">Rubavu</option>
+                                <option value="Nyagatare">Nyagatare</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">Movement Type</label>
+                            <select
+                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                value={filters.movementType}
+                                onChange={(e)=> setFilters({...filters, movementType: e.target.value})}
+                            >
+                                <option value="">All types</option>
+                                <option value="SALE">Sale</option>
+                                <option value="PURCHASE">Purchase</option>
+                                <option value="ADJUSTMENT">Adjustment</option>
+                            </select>
+                        </div>
+                        <div className="sm:col-span-2 lg:col-span-1 flex items-end">
+                            <button
+                                className="w-full px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium"
+                                onChange={()=> setFilters({region: '', movementType: ""})}
+                                >
+                                    Clear Filters
+                                </button>
+                        </div>
+                    </div>
+                </div>
+
+                
             </div>
         </div>
     )
