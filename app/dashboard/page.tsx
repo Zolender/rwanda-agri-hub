@@ -130,7 +130,21 @@ export default function Dashboard() {
                         Inventory Managment Dashboard
                     </p>
                 </div>
-                
+                <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                        <p className="text-slate-600 text-sm font-medium mb-1">Total Transactions</p>
+                        <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                        <p className="text-slate-600 text-sm font-medium mb-1">Sales</p>
+                        <p className="text-3xl font-bold text-slate-900">{stats.sales}</p>
+                    </div>
+                    <div className="bg-white rounded-xl shadow-lg p6 border-l-4 border-emerald-500">
+                        <p className="text-slate-600 text-sm font-medium mb-1">Revenues (RWF)</p>
+                        <p className="text-3xl font-bold text-slate-900">{stats.revenue.toLocaleString()}</p>
+                    </div>
+
+                </div>
             </div>
         </div>
     )
