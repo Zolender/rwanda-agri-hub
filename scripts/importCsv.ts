@@ -38,11 +38,11 @@ async function run() {
         .on("data", (row) => rows.push(row))
         .on("end", async () => {
             console.log("Rows loaded:", rows.length);
-            // console.log("Processing row:", rows[0]);
-            const row = rows[0]
+            
+            for(let i=0; i<rows.length; i++){
+                const row = rows[i]
 
-                    // 👉 Parse the data types
-            const movementType = parseMovementType(row.movement_type);
+                const movementType = parseMovementType(row.movement_type);
             const transactionDate = parseDate(row.transaction_date);
             
             console.log("\n Upserting Product...");
@@ -114,6 +114,10 @@ async function run() {
             })
 
             console.log("Transaction created successfully !")
+            }
+
+        
+            
 
             await prisma.$disconnect();
             await pool.end();
