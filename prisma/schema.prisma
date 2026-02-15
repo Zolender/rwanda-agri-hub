@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MovementType {
+  SALE
+  PURCHASE
+  ADJUSTMENT
+}
+
+enum ProductStatus {
+  SOLD
+  ACTIVE
+  DISCONTINUED
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  productCode   String   @unique
+  category      String
+  unitOfMeasure String
+  reorderPoint  Int
+  leadTimeDays  Int
+  status        ProductStatus
+
+  transactions  Transaction[]
+}
+
+model Supplier {
+  id            String @id @default(cuid())
+  name          String @unique
+
+  transactions  Transaction[]
+}
+
+model Customer {
+  id            String @id @default(cuid())
+  code          String @unique
+
+  transactions  Transaction[]
+}
+
+model Region {
+  id            String @id @default(cuid())
+  name          String @unique
+
+  transactions  Transaction[]
+}
+
+model Transaction {
+  id                String   @id @default(cuid())
+  transactionDate   DateTime
+  movementType      MovementType
+
+  quantityOrdered   Int
+  quantityFulfilled Int
+  lostSaleQty       Int
+  remainingStock    Int
+
+  unitCostRwf       Float
+  sellingPriceRwf   Float
+  landedCostRwf     Float
+
+  orderId           String?
+  poId              String?
+
+  productId         String
+  supplierId        String?
+  customerId        String?
+  regionId          String
+
+  product           Product   @relation(fields: [productId], references: [id])
+  supplier          Supplier? @relation(fields: [supplierId], references: [id])
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  region            Region    @relation(fields: [regionId], references: [id])
+
+  createdAt         DateTime  @default(now())
+}
