@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
+// import CountUp from 'react-countup'
 
 
 interface Transaction {
@@ -135,7 +136,7 @@ export default function Dashboard() {
 
     if(loading){
         return(
-            <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 to bg-slate-100">
+            <div className="min-h-screen w-full flex items-center justify-center bg-linear-to-br from-slate-50 to bg-slate-100">
                 <div className="text-center">
                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-slate-600 text-lg">Loading dashboard...</p>
@@ -145,7 +146,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 p-4 sm:p-6 lg:p-8 ">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50 p-4 sm:p-6 lg:p-8 w-[90%] ">
             <div className="max-w-7xl mx-auto space-y-6">
                 <div ref={headerRef} className="text-center sm:text-left">
                     <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
@@ -156,15 +157,15 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <div ref={statsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:-translate-y-1">
                         <p className="text-slate-600 text-sm font-medium mb-1">Total Transactions</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:-translate-y-1">
                         <p className="text-slate-600 text-sm font-medium mb-1">Sales</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.sales}</p>
                     </div>
-                    <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500">
+                    <div className="bg-white/80 backdrop-blur-md rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-200 hover:-translate-y-1">
                         <p className="text-slate-600 text-sm font-medium mb-1">Revenues (RWF)</p>
                         <p className="text-3xl font-bold text-slate-900">{stats.revenue.toLocaleString()}</p>
                     </div>
@@ -178,36 +179,36 @@ export default function Dashboard() {
                                 Region
                             </label>
                             <select 
-                            className="w-full px-4 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
+                            className="w-full px-4 border border-slate-300 rounded-lg text-slate-800 focus:ring-emerald-500 focus:border-emerald-500 transition"
                             value={filters.region}
                             onChange={(e)=> setFilters({...filters, region: e.target.value})}
                             >
-                                <option value="">All Regions</option>
-                                <option value="Musanze">Musanze</option>
-                                <option value="Huye">Huye</option>
-                                <option value="Kigali">Kigali</option>
-                                <option value="Rubavu">Rubavu</option>
-                                <option value="Nyagatare">Nyagatare</option>
+                                <option className="text-slate-600" value="">All Regions</option>
+                                <option className="text-slate-600" value="Musanze">Musanze</option>
+                                <option className="text-slate-600" value="Huye">Huye</option>
+                                <option className="text-slate-600" value="Kigali">Kigali</option>
+                                <option className="text-slate-600" value="Rubavu">Rubavu</option>
+                                <option className="text-slate-600" value="Nyagatare">Nyagatare</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Movement Type</label>
                             <select
-                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
+                                className="w-full px-4 py-2 border text-slate-800 border-slate-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 transition"
                                 value={filters.movementType}
                                 onChange={(e)=> setFilters({...filters, movementType: e.target.value})}
                             >
-                                <option value="">All types</option>
-                                <option value="SALE">Sale</option>
-                                <option value="PURCHASE">Purchase</option>
-                                <option value="ADJUSTMENT">Adjustment</option>
+                                <option className="text-slate-600" value="">All types</option>
+                                <option className="text-slate-600" value="SALE">Sale</option>
+                                <option className="text-slate-600" value="PURCHASE">Purchase</option>
+                                <option className="text-slate-600" value="ADJUSTMENT">Adjustment</option>
                             </select>
                         </div>
                         <div className="sm:col-span-2 lg:col-span-1 flex items-end">
                             <button
-                                className="w-full px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium"
-                                onChange={()=> setFilters({region: '', movementType: ""})}
+                                className="w-full px-6 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors font-medium hover:cursor-pointer"
+                                onClick={()=> setFilters({region: '', movementType: ""})}
                                 >
                                     Clear Filters
                                 </button>
@@ -223,8 +224,8 @@ export default function Dashboard() {
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Date</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Product</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Region</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
-                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Quantity</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Type of Movement</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Quantity Bought</th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">Price in RWF</th>
                                 </tr>
                             </thead>
