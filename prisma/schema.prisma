@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
   provider = "prisma-client"
@@ -10,4 +7,42 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+
+
+enum MovementType {
+  Sale
+  Adjustment
+  Purchase
+}
+
+model Product {
+  id                   String        @id // product_id (SKU)
+  categoryId           String        
+  unitOfMeasure        String
+  unitCostRwf          Float
+  sellingPriceRwf      Float
+  landedCostRwf        Float
+  reorderPointUnits    Int
+  leadTimeBufferDays   Int
+  transactions         Transaction[]
+}
+
+model Transaction {
+  id                    String       @id @default(cuid())
+  orderId               String       
+  productId             String
+  product               Product      @relation(fields: [productId], references: [id])
+  movementType          MovementType
+  quantityOrderedUnits  Int?
+  quantityFulfilledUnits Int
+  remainingStockUnits   Int          
+  customerId            String?
+  supplierId            String?
+  poId                  String?
+  region                String
+  lostSaleQtyUnits      Int          @default(0)
+  transactionDate       DateTime     
+  createdAt             DateTime     @default(now())
 }
