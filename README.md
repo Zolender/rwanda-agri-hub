@@ -46,7 +46,7 @@ This repository is TypeScript-first.
 - Database: **PostgreSQL**
 - ORM: **Prisma**
 - Validation: **Zod**
-- UI: (TBD) Tailwind CSS or existing CSS approach
+- UI: (TBD) Tailwind CSS and later on GSAP for animation
 - Testing: (later) Playwright + Vitest
 
 ---
