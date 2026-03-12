@@ -14,6 +14,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             email: { label: "Email", type: "email" },
             password: { label: "Password", type: "password" },
         },
+        
         async authorize(credentials) {
             if (!credentials?.email || !credentials?.password) return null
 
@@ -50,4 +51,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     pages: {
         signIn: "/login", // Tells NextAuth to use your custom login page
     },
+    session: {
+        strategy: "database", // This means sessions are stored in Supabase, not just JWTs
+        },
 })
