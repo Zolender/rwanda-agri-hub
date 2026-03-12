@@ -1,10 +1,12 @@
-// Look at your file path in the sidebar. 
-// If db.ts is in /lib, and the client is in /app/generated/prisma, this path is correct:
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../app/generated/prisma/client';
 
+const connectionString = process.env.DATABASE_URL;
+
 const prismaClientSingleton = () => {
-  // We pass an empty object {} to satisfy the "1 argument" requirement
-  return new PrismaClient({});
+  // In Prisma 7, we can pass the connection string directly to the adapter
+  const adapter = new PrismaPg({ connectionString });
+  return new PrismaClient({ adapter });
 };
 
 declare global {
