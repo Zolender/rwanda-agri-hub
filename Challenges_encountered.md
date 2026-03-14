@@ -1,0 +1,52 @@
+# Challenges & Solutions: Rwanda Agri-Hub
+
+This log tracks the technical hurdles encountered during the development of the Rwanda Agri-Hub project and how they were resolved.
+
+## 1. Prisma v7 Driver Adapter Conflict
+
+Challenge: After upgrading to Prisma v7, the standard PrismaClient initialization failed. TypeScript threw errors stating new PrismaClient() expected 1 argument (the adapter) and refused to accept the pg Pool due to a type mismatch.
+
+Solution:
+
+* Implemented Driver Adapters using @prisma/adapter-pg and the pg library.
+* Resolved the "Pool type mismatch" (caused by conflicting @types/pg versions) by using type casting: const adapter = new PrismaPg(pool as any).
+* Moved to a Singleton pattern in lib/db.ts to prevent database connection exhaustion during Next.js hot-reloading.
+
+## 2. The "Crypto" Module & Edge Runtime
+
+Challenge: When adding middleware.ts for route protection, the app crashed with the error: The edge runtime does not support Node.js 'crypto' module.
+
+Why it happened: Next.js Middleware runs on the "Edge Runtime" (a slimmed-down environment), while libraries like bcrypt and prisma require the full Node.js environment.
+
+Solution:
+
+* Split the Auth Config: Created a "light" auth.config.ts for the Middleware and a "heavy" auth.ts for the server-side logic.
+* Switched to bcryptjs: Replaced the native bcrypt with bcryptjs, which is written in pure JavaScript and more compatible with various runtimes.
+* Session Strategy: Switched to strategy: "jwt" in the Auth config to ensure compatibility across the Edge.
+
+## 3. Manual Database Seeding in Prisma 7
+
+Challenge: Running a seed script to create the first Admin user was failing because the script couldn't find the generated Prisma types or the database connection.
+
+Solution:
+
+* Created prisma/seed.ts using tsx to handle TypeScript execution.
+* Manually assembled the Prisma engine inside the script (Connection Pool -> Adapter -> Client).
+* Added pool.end() in the .finally block to prevent the script from "hanging" after completion.
+
+## 4. File Extension Sensitivity (.ts vs .tsx)
+
+Challenge: React components (like the Transactions page) showed cryptic syntax errors where HTML tags (e.g., <main>) were treated as "less than" operators.
+
+Solution:
+
+* Ensured all files containing JSX/React components use the .tsx extension, while pure logic/utility files use .ts.
+
+## 5. NextAuth (Auth.js) Role-Based Access (RBAC)
+
+Challenge: Needed a way to differentiate between Admin, Manager, and Analyst without querying the database on every single page load.
+
+Solution:
+
+* Updated schema.prisma with a UserRole Enum.
+* Used the Session Callback in auth.ts to "stamp" the user's role onto the session cookie. This allows the UI to instantly know the user's permissions.
