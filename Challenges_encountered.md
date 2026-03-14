@@ -50,3 +50,11 @@ Solution:
 
 * Updated schema.prisma with a UserRole Enum.
 * Used the Session Callback in auth.ts to "stamp" the user's role onto the session cookie. This allows the UI to instantly know the user's permissions.
+
+## 6. Schema Mapping Discrepancy
+
+Challenge: Encountered Object literal may only specify known properties errors in Prisma.
+
+Why: The frontend code was using generic field names (sku, price) while the schema.prisma was using specific business names (id, unitCostRwf).
+
+Solution: Rewrote the Zod validation schema and Prisma upsert logic to strictly match the database model naming conventions.
