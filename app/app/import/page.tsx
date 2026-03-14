@@ -1,10 +1,36 @@
 'use client';
 
 import { useState } from 'react';
+import Papa from 'papaparse';
+import { importInventoryAction } from '@/app/lib/actions/import-inventory';
+
+
 
 export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+
+    const handleImport = async () => {
+    if (!file) return;
+    setIsUploading(true);
+
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: async (results) => {
+        // Use a type cast (as any[]) here to tell TS we will handle the validation inside the action
+        const response = await importInventoryAction(results.data as any[]);
+        
+        if (response.success) {
+            alert(`Success! Imported ${response.count} items.`);
+            setFile(null);
+        } else {
+            alert(response.error);
+        }
+        setIsUploading(false);
+        },
+    });
+};
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) setFile(e.target.files[0]);
@@ -41,6 +67,7 @@ export default function ImportPage() {
         </div>
 
         <button
+            onClick={handleImport}
             disabled={!file || isUploading}
             className="w-full py-4 bg-slate-900 text-white rounded-2xl font-medium hover:bg-slate-800 disabled:opacity-50 transition-all"
         >
