@@ -18,13 +18,16 @@ const RowSchema = z.object({
 });
 
 export async function importInventoryAction(data: any[]) {
+    console.log("1. Action Triggered! Received data rows:", data.length);
     const session = await auth();
 
     if (!session || (session.user.role !== "ADMIN" && session.user.role !== "MANAGER")) {
+        console.log("2. Security Fail: No Session");
         throw new Error("Unauthorized");
     }
 
     try {
+        console.log("3. Starting Database Transaction...")
         await prisma.$transaction(
         data.map((row) => {
             const validated = RowSchema.parse(row);
@@ -50,6 +53,7 @@ export async function importInventoryAction(data: any[]) {
         })
         );
 
+        console.log("4. Transaction Complete!");
         revalidatePath("/dashboard");
         return { success: true, count: data.length };
     } catch (error) {

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
+import { toast } from 'sonner';
 
 
 
@@ -22,10 +23,10 @@ export default function ImportPage() {
         const response = await importInventoryAction(results.data as any[]);
         
         if (response.success) {
-            alert(`Success! Imported ${response.count} items.`);
+            toast.success(`Success! Imported ${response.count} items.`);
             setFile(null);
         } else {
-            alert(response.error);
+            toast.error(response.error);
         }
         setIsUploading(false);
         },
