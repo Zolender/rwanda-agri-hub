@@ -17,7 +17,7 @@ export default function ImportPage() {
 
     Papa.parse(file, {
         header: true,
-        skipEmptyLines: true,
+        skipEmptyLines: 'greedy',
         transformHeader: h => h.trim(),
         complete: async (results) => {
         // Use a type cast (as any[]) here to tell TS we will handle the validation inside the action
