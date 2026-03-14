@@ -61,6 +61,9 @@ export async function importInventoryAction(data: any[]) {
             });
         });
 
+        if (operations.length === 0) {
+        return { success: false, error: "No valid data found in CSV." };
+    }
         // Execute all operations in one single transaction
         await prisma.$transaction(operations);
 

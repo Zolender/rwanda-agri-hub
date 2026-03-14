@@ -30,5 +30,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null;
         },
         }),
-    ],
+    ],callbacks: {
+        async jwt({ token, user }) {
+        // When the user logs in, 'user' exists. We attach the role to the token.
+        if (user) {
+            token.role = (user as any).role; 
+        }
+        return token;
+        },
+        async session({ session, token }) {
+        // We pass the role from the token into the session object
+        if (token.role && session.user) {
+            session.user.role = token.role as string;
+        }
+        return session;
+        },
+    },
 });
