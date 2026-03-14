@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/lib/auth";
+import { auth, signOut } from "@/app/lib/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
