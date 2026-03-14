@@ -25,8 +25,8 @@ export default async function AppLayout({
             </div>
 
             <nav className="flex-1 px-4 space-y-1">
-            <NavLink href="/dashboard">Dashboard</NavLink>
-            <NavLink href="/transactions">Ledger</NavLink>
+            <NavLink href="/app/dashboard">Dashboard</NavLink>
+            <NavLink href="/app/transactions">Ledger</NavLink>
             
             {/* Role-Based Links */}
             {(role === "ADMIN" || role === "MANAGER") && (
