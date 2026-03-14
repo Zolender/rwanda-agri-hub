@@ -31,6 +31,9 @@ export async function importInventoryAction(data: any[]) {
 
     try {
         console.log("3. Validating and Preparing Transaction...");
+
+        // Filter out rows that don't have an ID (like that ghost Row 1)
+        const validRows = data.filter(row => row.id && row.id.trim() !== "");
         
         // We create the array of operations FIRST
         const operations = data.map((row, index) => {
