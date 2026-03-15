@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -26,6 +27,9 @@ export default function ImportPage() {
 
     const handleImport = async () => {
         if (!file) return;
+        const confirmMessage = `You are about to import ${file.name}. This will update stock levels for many products. Do you want to proceed?`;
+        if (!window.confirm(confirmMessage)) return;
+
         setIsUploading(true);
 
         Papa.parse(file, {
@@ -51,11 +55,12 @@ export default function ImportPage() {
                 for (let i = 0; i < allData.length; i += chunkSize) {
                     const chunk = allData.slice(i, i + chunkSize);
                     
+                    
                     try {
                         const response = await importInventoryAction(chunk);
-                        
                         if (response && response.success) {
                             totalImported += (response.count ?? 0);
+                            setProgress(Math.round((i / allData.length) * 100));
                         } else {
                             // LOG 2: If the server returns an error, show it
                             console.error(`Server Error at row ${i}:`, response?.error);
@@ -91,6 +96,16 @@ export default function ImportPage() {
             <p className="text-slate-500 text-sm">Upload your distribution CSV to sync stock levels.</p>
         </header>
 
+            {isUploading && (
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-4">
+                <div 
+                    className="bg-emerald-500 h-full transition-all duration-300" 
+                    style={{ width: `${progress}%` }}
+                />
+                <p className="text-xs text-slate-500 text-center mt-2">Processing: {progress}%</p>
+            </div>
+        )}
+        
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4 hover:border-emerald-300 transition-colors">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
             <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
