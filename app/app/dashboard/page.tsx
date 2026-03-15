@@ -1,18 +1,38 @@
-export default function DashboardPage() {
-    return (
-        <div className="space-y-6">
-        <header>
-            <h1 className="text-2xl font-light text-slate-800 tracking-tight">
-            System Overview
-            </h1>
-            <p className="text-slate-500 text-sm">Welcome to the Agri-Hub control center.</p>
-        </header>
+import prisma from "@/app/lib/db";
+import StatCard from "@/app/app/components/dashboard/StatCard";
+import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react";
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* We will put real KPI cards here later */}
-            <div className="h-32 bg-white rounded-2xl border border-slate-100 shadow-sm animate-pulse" />
-            <div className="h-32 bg-white rounded-2xl border border-slate-100 shadow-sm animate-pulse" />
-            <div className="h-32 bg-white rounded-2xl border border-slate-100 shadow-sm animate-pulse" />
+export default async function DashboardPage() {
+    const [totalProducts, totalTransactions, totalValue] = await Promise.all([
+        prisma.product.count(),
+        prisma.transaction.count(),
+        prisma.product.aggregate({
+        _sum: {
+            unitCostRwf: true // Total value of one of each product
+        }
+        })
+    ]);
+
+    return (
+        <div className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard 
+            title="Total Products" 
+            value={totalProducts} 
+            icon={Package} 
+            />
+            {/* We changed this to Transactions until we fix the quantity field */}
+            <StatCard 
+            title="Total Movements" 
+            value={totalTransactions} 
+            icon={Activity} 
+            description="Total recorded ledger entries"
+            />
+            <StatCard 
+            title="Inventory Value" 
+            value={`${(totalValue._sum.unitCostRwf || 0).toLocaleString()} Rwf`} 
+            icon={BadgeDollarSign} 
+            />
         </div>
         </div>
     );
