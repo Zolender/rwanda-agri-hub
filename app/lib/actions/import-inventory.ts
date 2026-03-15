@@ -10,12 +10,23 @@ const RowSchema = z.object({
     id: z.string().min(1),
     categoryId: z.string().min(1),
     unitOfMeasure: z.string().default("Kg"),
-    unitCostRwf: z.preprocess((val) => Number(val), z.number()),
-    sellingPriceRwf: z.preprocess((val) => Number(val), z.number()),
-    landedCostRwf: z.preprocess((val) => Number(val), z.number()),
+    // The regex /[^0-9.-]+/g removes everything except numbers, dots, and minus signs
+    // This stops "45,000" or "500 Rwf" from crashing your import.
+    unitCostRwf: z.preprocess(
+        (val) => typeof val === 'string' ? Number(val.replace(/[^0-9.-]+/g, "")) : Number(val), 
+        z.number()
+    ),
+    sellingPriceRwf: z.preprocess(
+        (val) => typeof val === 'string' ? Number(val.replace(/[^0-9.-]+/g, "")) : Number(val), 
+        z.number()
+    ),
+    landedCostRwf: z.preprocess(
+        (val) => typeof val === 'string' ? Number(val.replace(/[^0-9.-]+/g, "")) : Number(val), 
+        z.number()
+    ),
     reorderPointUnits: z.preprocess((val) => Number(val), z.number().int()),
     leadTimeBufferDays: z.preprocess((val) => Number(val), z.number().int()),
-    quantity: z.preprocess((val) => Number(val), z.number().int())
+    quantity: z.preprocess((val) => Number(val) || 0, z.number().int())
 });
 
 export async function importInventoryAction(data: any[]) {
