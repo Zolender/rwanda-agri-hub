@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { LayoutDashboard, History, FileUp, ShieldCheck } from 'lucide-react';
+import { signOut } from "next-auth/react";
 
 export default function SidebarNav() {
     const pathname = usePathname();
@@ -27,7 +28,7 @@ export default function SidebarNav() {
 
 
     return (
-        <> 
+        <div className='flex flex-col h-full justify-between'> 
             <nav className="space-y-2 px-4">
                 {filteredItems.map((item) => {
                     const Icon = item.icon;
@@ -59,15 +60,15 @@ export default function SidebarNav() {
                     <p className="text-xs text-slate-400 capitalize">{session?.user?.role?.toLowerCase()}</p>
                     </div>
                 </div>
-                <div>
+                
                     <button 
                         onClick={() => signOut()}
                         className="w-full text-left px-3 py-2 text-sm text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
                     >
                         Sign Out
                     </button>
-                </div>
+                
             </div>
-        </>
+        </div>
     );
 }
