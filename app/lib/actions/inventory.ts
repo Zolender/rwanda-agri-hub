@@ -15,7 +15,43 @@ export async function getProductPreview(id: string) {
         unitOfMeasure: true,
         }
     });
-    }
+}
+
+export async function getPaginatedInventory(page: number = 1, search: string = "") {
+    const pageSize = 15;
+    const skip = (page - 1) * pageSize;
+
+    // We fetch the data and the total count simultaneously
+    const [items, totalCount] = await Promise.all([
+        prisma.product.findMany({
+        where: {
+            OR: [
+            { id: { contains: search, mode: 'insensitive' } },
+            { categoryId: { contains: search, mode: 'insensitive' } },
+            ],
+        },
+        take: pageSize,
+        skip: skip,
+        orderBy: { id: 'asc' },
+        }),
+        prisma.product.count({
+        where: {
+            OR: [
+            { id: { contains: search, mode: 'insensitive' } },
+            { categoryId: { contains: search, mode: 'insensitive' } },
+            ],
+        }}),
+    ]);
+
+    return {
+        items,
+        totalPages: Math.ceil(totalCount / pageSize),
+        totalCount
+    };
+}
+
+
+
 
     export async function recordSaleAction(productId: string, quantitySold: number, region: string) {
     try {
