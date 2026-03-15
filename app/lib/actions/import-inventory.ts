@@ -15,6 +15,7 @@ const RowSchema = z.object({
     landedCostRwf: z.preprocess((val) => Number(val), z.number()),
     reorderPointUnits: z.preprocess((val) => Number(val), z.number().int()),
     leadTimeBufferDays: z.preprocess((val) => Number(val), z.number().int()),
+    quantity: z.preprocess((val) => Number(val), z.number().int())
 });
 
 export async function importInventoryAction(data: any[]) {
@@ -57,6 +58,7 @@ export async function importInventoryAction(data: any[]) {
                     landedCostRwf: validated.landedCostRwf,
                     reorderPointUnits: validated.reorderPointUnits,
                     leadTimeBufferDays: validated.leadTimeBufferDays,
+                    quantity: validated.quantity
                 },
             });
         });
