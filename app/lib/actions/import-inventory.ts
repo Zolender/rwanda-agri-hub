@@ -46,8 +46,8 @@ export async function importInventoryAction(data: any[]) {
                 update: {
                     unitCostRwf: validated.unitCostRwf,
                     sellingPriceRwf: validated.sellingPriceRwf,
-                    // You might want to update stock here too:
-                    // reorderPointUnits: validated.reorderPointUnits 
+                    reorderPointUnits: validated.reorderPointUnits,
+                    quantity: validated.quantity,
                 },
                 create: {
                     id: validated.id,

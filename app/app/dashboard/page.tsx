@@ -13,27 +13,48 @@ export default async function DashboardPage() {
         })
     ]);
 
+    const lowStockItems = await prisma.product.count({
+        where: {
+            quantity: {
+            lt: prisma.product.fields.reorderPointUnits
+            }
+        }
+    });
+
     return (
-        <div className="space-y-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* 1. Total Unique Products */}
             <StatCard 
-            title="Total Products" 
-            value={totalProducts} 
-            icon={Package} 
+                title="Total Products" 
+                value={totalProducts} 
+                icon={Package} 
+                description="Unique items in catalog"
             />
-            {/* We changed this to Transactions until we fix the quantity field */}
+
+            {/* 2. Low Stock - Using our new AlertTriangle icon! */}
             <StatCard 
-            title="Total Movements" 
-            value={totalTransactions} 
-            icon={Activity} 
-            description="Total recorded ledger entries"
+                title="Low Stock Alerts" 
+                value={lowStockItems} // This will work once you add the quantity field
+                icon={AlertTriangle} 
+                description="Items needing reorder"
+                trend={{ value: lowStockItems > 0 ? 10 : 0, isPositive: false }}
             />
+
+            {/* 3. Total Inventory Value (Quantity * Unit Cost) */}
             <StatCard 
-            title="Inventory Value" 
-            value={`${(totalValue._sum.unitCostRwf || 0).toLocaleString()} Rwf`} 
-            icon={BadgeDollarSign} 
+                title="Inventory Value" 
+                value={`${totalInventoryValue.toLocaleString()} Rwf`} 
+                icon={BadgeDollarSign} 
+                description="Based on current stock levels"
             />
-        </div>
+
+            {/* 4. Movements / Activity */}
+            <StatCard 
+                title="Total Movements" 
+                value={totalTransactions} 
+                icon={Activity} 
+                description="Records in ledger"
+            />
         </div>
     );
 }
