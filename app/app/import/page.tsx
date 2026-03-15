@@ -104,9 +104,9 @@ export default function ImportPage() {
             {isUploading && (
                 <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-50 flex items-center justify-center">
                     <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm text-center space-y-4">
-                    <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto" />
-                    <h3 className="font-semibold text-slate-800">Importing Data...</h3>
-                    <p className="text-sm text-slate-500">Please stay on this page to ensure all {progress}% of your data is saved.</p>
+                        <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto" />
+                            <h3 className="font-semibold text-slate-800">Importing Data...</h3>
+                            <p className="text-sm text-slate-500">Please stay on this page to ensure all {progress}% of your data is saved.</p>
                     </div>
                 </div>
                 )}
