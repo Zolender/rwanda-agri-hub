@@ -20,16 +20,49 @@ export default function ImportPage() {
         skipEmptyLines: 'greedy',
         transformHeader: h => h.trim(),
         complete: async (results) => {
-        // Use a type cast (as any[]) here to tell TS we will handle the validation inside the action
-        const response = await importInventoryAction(results.data as any[]);
-        
-        if (response.success) {
-            toast.success(`Success! Imported ${response.count} items.`);
-            setFile(null);
-        } else {
-            toast.error(response.error);
-        }
-        setIsUploading(false);
+            const allData = results.data as any[];
+            
+            // LOG 1: Check if PapaParse actually found rows
+            console.log("Total rows found by PapaParse:", allData.length);
+            console.log("First row sample:", allData[0]);
+
+            if (allData.length === 0) {
+                toast.error("The CSV file appears to be empty.");
+                setIsUploading(false);
+                return;
+            }
+
+            const chunkSize = 100;
+            let totalImported = 0;
+
+            for (let i = 0; i < allData.length; i += chunkSize) {
+                const chunk = allData.slice(i, i + chunkSize);
+                
+                try {
+                    const response = await importInventoryAction(chunk);
+                    
+                    if (response && response.success) {
+                        totalImported += (response.count ?? 0);
+                    } else {
+                        // LOG 2: If the server returns an error, show it
+                        console.error(`Server Error at row ${i}:`, response?.error);
+                        toast.error(response?.error || "Import failed at a chunk.");
+                        break; 
+                    }
+                } catch (err) {
+                    console.error("Network Fetch Error:", err);
+                    break;
+                }
+            }
+
+            if (totalImported > 0) {
+                toast.success(`Mission Accomplished! ${totalImported} items imported.`);
+                setFile(null);
+            } else {
+                toast.error("Import finished but 0 records were saved. Check the console.");
+            }
+            
+            setIsUploading(false);
         },
     });
 };
