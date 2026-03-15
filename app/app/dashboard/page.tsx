@@ -3,15 +3,19 @@ import StatCard from "@/app/app/components/dashboard/StatCard";
 import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react";
 
 export default async function DashboardPage() {
-    const [totalProducts, totalTransactions, totalValue] = await Promise.all([
+    const [totalProducts, totalTransactions, inventoryData] = await Promise.all([
         prisma.product.count(),
         prisma.transaction.count(),
         prisma.product.aggregate({
         _sum: {
-            unitCostRwf: true // Total value of one of each product
+            unitCostRwf: true,
+            quantity: true // Make sure you added 'quantity' to the schema!
         }
         })
-    ]);
+]);
+
+// Calculate the total value (Sum of costs)
+const totalValue = inventoryData._sum.unitCostRwf || 0;
 
     const lowStockItems = await prisma.product.count({
         where: {
@@ -43,7 +47,7 @@ export default async function DashboardPage() {
             {/* 3. Total Inventory Value (Quantity * Unit Cost) */}
             <StatCard 
                 title="Inventory Value" 
-                value={`${totalInventoryValue.toLocaleString()} Rwf`} 
+                value={`${totalValue.toLocaleString()} Rwf`} 
                 icon={BadgeDollarSign} 
                 description="Based on current stock levels"
             />

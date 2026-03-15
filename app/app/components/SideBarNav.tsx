@@ -12,10 +12,10 @@ export default function SidebarNav() {
 
     // Define our links with their required roles
     const navItems = [
-        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, minRole: 'ANALYST' },
-        { name: 'Transactions', href: '/transactions', icon: History, minRole: 'ANALYST' },
-        { name: 'Import Data', href: '/import', icon: FileUp, minRole: 'MANAGER' },
-        { name: 'Admin', href: '/admin', icon: ShieldCheck, minRole: 'ADMIN' },
+        { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard, minRole: 'ANALYST' },
+        { name: 'Transactions', href: '/app/transactions', icon: History, minRole: 'ANALYST' },
+        { name: 'Import Data', href: '/app/import', icon: FileUp, minRole: 'MANAGER' },
+        { name: 'Admin', href: '/app/admin', icon: ShieldCheck, minRole: 'ADMIN' },
     ];
 
     // Logic: Only show the link if the user's role allows it
