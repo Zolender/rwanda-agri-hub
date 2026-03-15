@@ -72,3 +72,76 @@ This log tracks the technical hurdles encountered during the development of the 
 
 * Challenge: Data was not saving because the frontend used sku and price while the database schema used id and unitCostRwf.
 * Solution: Renamed all Zod schema keys and Prisma upsert keys to strictly match the schema.prisma file.
+## 11. The "Too Many Redirects" Loop
+
+Challenge:
+* The application entered an infinite redirect loop when trying to access the dashboard, with the browser reporting "The page redirected you too many times."
+
+Why it happened:
+* A conflict between the Next.js Middleware and the App Layout guard. The Middleware was protecting the /login page from itself, or the Layout was redirecting unauthenticated users to a path that the Middleware then sent back, creating a circular logic trap.
+
+Solution:
+
+* Refined the middleware.ts matcher to explicitly exclude static assets and authentication API routes.
+* Ensured the SessionProvider wrapped the root of the application so that the "Auth Status" was consistent across both Server and Client components.
+
+## 12. Client-Side Context (The useSession hurdle)
+
+Challenge:
+* Encountered the runtime error: [next-auth]: useSession must be wrapped in a <SessionProvider />.
+
+Why it happened:
+* The new SidebarNav was converted to a Client Component to handle interactive navigation, but it was being rendered inside a Server Layout that lacked the necessary React Context.
+
+Solution:
+
+* Created a dedicated Providers.tsx Client Component.
+* Wrapped the {children} in the root layout.tsx with this provider, ensuring every component in the tree has access to the user's session data.
+
+## 13. The "Mega-Dataset" Body Limit (1MB Gate)
+
+Challenge:
+* Attempting to import the real-world dataset (2,000+ rows) triggered a 413 Payload Too Large error, specifically: Body exceeded 1 MB limit.
+
+Why it happened:
+* Next.js Server Actions have a default security limit of 1MB for incoming data to prevent DOS attacks. A 20-column CSV with thousands of rows easily exceeds this.
+
+Solution:
+
+* Implemented Client-Side Chunking. Instead of sending the whole file at once, the frontend now "slices" the data into batches of 100 rows.
+
+This bypasses the 1MB limit and prevents the server from timing out during massive database operations.
+
+## 14. Transaction Timeout & Expiry
+
+Challenge:
+* The import failed with Transaction API error: A rollback cannot be executed on an expired transaction.
+
+Why it happened:
+* Prisma's default interactive transaction timeout is 5 seconds. Processing 100 upsert operations (which include complex relational logic) was taking longer than the 5000ms limit.
+
+Solution:
+
+* Moved away from a strict $transaction for the bulk import.
+* Switched to Promise.all() to process the validated chunk in parallel. This allows the database to handle the load more flexibly without a global "kill switch" timer.
+
+## 15. Snake_Case vs. CamelCase Mapping
+
+Challenge:
+* The real-world CSV used standard database naming (product_id, unit_cost_rwf), but the Prisma schema used TypeScript standards (id, unitCostRwf). The import finished with "0 records" because no fields matched.
+
+Solution:
+
+* Updated the RowSchema (Zod) to act as a Translation Layer.
+* It now captures the raw snake_case headers from the CSV and maps them manually to the camelCase fields required by the Prisma create and update methods.
+
+## 16. The "Safety Lock" (Navigation Protection)
+
+Challenge:
+* If an admin navigated away or closed the tab during a 2,000-row import, the process would die halfway through, leaving the database partially updated.
+
+Solution:
+
+* Implemented the beforeunload browser event listener that triggers only while isUploading is true.
+* Added a "Confirmation Question" (window.confirm) before the import starts.
+* Implemented a fixed inset-0 UI overlay that visually locks the screen and shows a progress percentage, preventing accidental navigation within the app.
