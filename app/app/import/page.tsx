@@ -102,14 +102,14 @@ export default function ImportPage() {
         </header>
 
             {isUploading && (
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-4">
-                <div 
-                    className="bg-emerald-500 h-full transition-all duration-300" 
-                    style={{ width: `${progress}%` }}
-                />
-                <p className="text-xs text-slate-500 text-center mt-2">Processing: {progress}%</p>
-            </div>
-        )}
+                <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-50 flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm text-center space-y-4">
+                    <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto" />
+                    <h3 className="font-semibold text-slate-800">Importing Data...</h3>
+                    <p className="text-sm text-slate-500">Please stay on this page to ensure all {progress}% of your data is saved.</p>
+                    </div>
+                </div>
+                )}
         
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4 hover:border-emerald-300 transition-colors">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
