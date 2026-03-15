@@ -26,6 +26,7 @@ model Product {
   landedCostRwf        Float
   reorderPointUnits    Int
   leadTimeBufferDays   Int
+  quantity             Int       @default(0)
   transactions         Transaction[]
 }
 
