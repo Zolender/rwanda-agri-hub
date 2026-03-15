@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+
+import { useState, useEffect} from 'react';
 import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
 import { toast } from 'sonner';
@@ -11,61 +12,73 @@ export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isUploading) {
+                e.preventDefault();
+                e.returnValue = ''; // Required for Chrome
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isUploading]);
+
     const handleImport = async () => {
-    if (!file) return;
-    setIsUploading(true);
+        if (!file) return;
+        setIsUploading(true);
 
-    Papa.parse(file, {
-        header: true,
-        skipEmptyLines: 'greedy',
-        transformHeader: h => h.trim(),
-        complete: async (results) => {
-            const allData = results.data as any[];
-            
-            // LOG 1: Check if PapaParse actually found rows
-            console.log("Total rows found by PapaParse:", allData.length);
-            console.log("First row sample:", allData[0]);
-
-            if (allData.length === 0) {
-                toast.error("The CSV file appears to be empty.");
-                setIsUploading(false);
-                return;
-            }
-
-            const chunkSize = 100;
-            let totalImported = 0;
-
-            for (let i = 0; i < allData.length; i += chunkSize) {
-                const chunk = allData.slice(i, i + chunkSize);
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: 'greedy',
+            transformHeader: h => h.trim(),
+            complete: async (results) => {
+                const allData = results.data as any[];
                 
-                try {
-                    const response = await importInventoryAction(chunk);
-                    
-                    if (response && response.success) {
-                        totalImported += (response.count ?? 0);
-                    } else {
-                        // LOG 2: If the server returns an error, show it
-                        console.error(`Server Error at row ${i}:`, response?.error);
-                        toast.error(response?.error || "Import failed at a chunk.");
-                        break; 
-                    }
-                } catch (err) {
-                    console.error("Network Fetch Error:", err);
-                    break;
-                }
-            }
+                // LOG 1: Check if PapaParse actually found rows
+                console.log("Total rows found by PapaParse:", allData.length);
+                console.log("First row sample:", allData[0]);
 
-            if (totalImported > 0) {
-                toast.success(`Mission Accomplished! ${totalImported} items imported.`);
-                setFile(null);
-            } else {
-                toast.error("Import finished but 0 records were saved. Check the console.");
-            }
-            
-            setIsUploading(false);
-        },
-    });
-};
+                if (allData.length === 0) {
+                    toast.error("The CSV file appears to be empty.");
+                    setIsUploading(false);
+                    return;
+                }
+
+                const chunkSize = 100;
+                let totalImported = 0;
+
+                for (let i = 0; i < allData.length; i += chunkSize) {
+                    const chunk = allData.slice(i, i + chunkSize);
+                    
+                    try {
+                        const response = await importInventoryAction(chunk);
+                        
+                        if (response && response.success) {
+                            totalImported += (response.count ?? 0);
+                        } else {
+                            // LOG 2: If the server returns an error, show it
+                            console.error(`Server Error at row ${i}:`, response?.error);
+                            toast.error(response?.error || "Import failed at a chunk.");
+                            break; 
+                        }
+                    } catch (err) {
+                        console.error("Network Fetch Error:", err);
+                        break;
+                    }
+                }
+
+                if (totalImported > 0) {
+                    toast.success(`Mission Accomplished! ${totalImported} items imported.`);
+                    setFile(null);
+                } else {
+                    toast.error("Import finished but 0 records were saved. Check the console.");
+                }
+                
+                setIsUploading(false);
+            },
+        });
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) setFile(e.target.files[0]);
