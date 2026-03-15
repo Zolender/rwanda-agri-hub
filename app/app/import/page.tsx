@@ -16,14 +16,19 @@ export default function ImportPage() {
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isUploading) {
-                e.preventDefault();
-                e.returnValue = ''; // Required for Chrome
+            // Standard way to trigger the browser's "Are you sure?" prompt
+            e.preventDefault();
+            // Most browsers require this for the prompt to actually show
+            return (e.returnValue = "Import in progress. Are you sure you want to leave?");
             }
         };
 
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isUploading]);
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        
+        // Cleanup: very important so the warning goes away after import finishes
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+        }, [isUploading]);
+
 
     const handleImport = async () => {
         if (!file) return;
