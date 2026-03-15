@@ -1,76 +1,48 @@
-'use client';
+import QuickSale from "@/app/app/components/inventory/QuickSale";
+import { History } from "lucide-react";
 
-import { useState, useEffect } from 'react';
-import { getProductPreview, recordSaleAction } from '@/app/lib/actions/inventory';
-import { toast } from 'sonner';
-
-export default function QuickSale() {
-    const [sku, setSku] = useState('');
-    const [product, setProduct] = useState<any>(null);
-    const [qty, setQty] = useState(1);
-    const [loading, setLoading] = useState(false);
-
-    // Debounced search for the product preview
-    useEffect(() => {
-        const search = async () => {
-        if (sku.length > 3) {
-            const data = await getProductPreview(sku);
-            setProduct(data);
-        } else {
-            setProduct(null);
-        }
-        };
-        const timer = setTimeout(search, 500);
-        return () => clearTimeout(timer);
-    }, [sku]);
-
-    const handleSale = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        const res = await recordSaleAction(sku, qty, "Kigali Hub");
-        if (res.success) {
-        toast.success("Sale recorded!");
-        setSku('');
-        setQty(1);
-        } else {
-        toast.error(res.error);
-        }
-        setLoading(false);
-    };
-
+export default function SalePage() {
     return (
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h3 className="font-bold text-slate-800 mb-4">New Sale</h3>
-            <form onSubmit={handleSale} className="space-y-4">
-                <input 
-                placeholder="Enter Product ID..." 
-                value={sku} 
-                onChange={(e) => setSku(e.target.value.toUpperCase())}
-                className="w-full p-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-emerald-500"
-                />
-
-                {/* --- THE PREVIEW SECTION --- */}
-                {product && (
-                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 animate-in fade-in slide-in-from-top-2">
-                    <p className="text-xs font-bold text-emerald-700 uppercase">{product.categoryId}</p>
-                    <div className="flex justify-between items-center mt-1">
-                    <span className="text-sm text-slate-600">Stock: **{product.quantity} {product.unitOfMeasure}**</span>
-                    <span className="text-sm font-bold text-slate-800">{product.sellingPriceRwf} RWF</span>
-                    </div>
+        <div className="max-w-6xl mx-auto space-y-8 p-6">
+            {/* Header Section */}
+            <header className="flex flex-col space-y-1">
+                <div className="flex items-center space-x-2 text-xs font-medium text-slate-400 uppercase tracking-widest">
+                <span>Inventory</span>
+                <span>/</span>
+                <span className="text-emerald-600">Stock Out</span>
                 </div>
-                )}
+                <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Record a Sale</h1>
+                <p className="text-slate-500">Search for a product SKU to deduct stock and update the ledger.</p>
+            </header>
 
-                <input 
-                type="number" 
-                value={qty} 
-                onChange={(e) => setQty(Number(e.target.value))}
-                className="w-full p-3 bg-slate-50 rounded-xl border-none"
-                />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Side: The Main Form */}
+                <div className="lg:col-span-2">
+                <QuickSale />
+                </div>
 
-                <button disabled={loading || !product} className="w-full py-3 bg-slate-900 text-white rounded-xl font-medium disabled:opacity-30">
-                {loading ? "Processing..." : "Confirm Transaction"}
-                </button>
-            </form>
+                {/* Right Side: Quick Info/Guidance */}
+                <div className="space-y-6">
+                <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg">
+                    <div className="flex items-center space-x-3 mb-4">
+                    <History className="text-emerald-400" size={20} />
+                    <h3 className="font-semibold">Quick Tip</h3>
+                    </div>
+                    <p className="text-slate-300 text-sm leading-relaxed">
+                    Always verify the <strong>Product Preview</strong> before confirming. 
+                    If the stock is below 10 units, the system will highlight it in amber.
+                    </p>
+                </div>
+
+                <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl">
+                    <h4 className="text-emerald-800 font-bold text-sm uppercase mb-2">Inventory Health</h4>
+                    <p className="text-emerald-700 text-sm">
+                    Any sale recorded here will instantly 
+                    reflect on the main dashboard analytics.
+                    </p>
+                </div>
+                </div>
+            </div>
         </div>
     );
 }
