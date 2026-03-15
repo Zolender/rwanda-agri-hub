@@ -56,7 +56,7 @@ interface Product {
                 setSearchTerm(e.target.value);
                 handleSearch(e.target.value);
             }}
-            className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+            className="w-full pl-10 pr-4 py-3 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
             />
         </div>
 

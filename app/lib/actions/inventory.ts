@@ -18,36 +18,30 @@ export async function getProductPreview(id: string) {
 }
 
 export async function getPaginatedInventory(page: number = 1, search: string = "") {
+    console.log("DEBUG: Searching for:", search); // <--- Check your terminal!
+    
     const pageSize = 15;
     const skip = (page - 1) * pageSize;
 
-    // We fetch the data and the total count simultaneously
+    // Ensure we are searching against the correct fields from your CSV
+    const whereClause = search ? {
+        OR: [
+        { id: { contains: search, mode: 'insensitive' as const } },
+        { categoryId: { contains: search, mode: 'insensitive' as const } },
+        ],
+    } : {};
+
     const [items, totalCount] = await Promise.all([
         prisma.product.findMany({
-        where: {
-            OR: [
-            { id: { contains: search, mode: 'insensitive' } },
-            { categoryId: { contains: search, mode: 'insensitive' } },
-            ],
-        },
+        where: whereClause,
         take: pageSize,
         skip: skip,
         orderBy: { id: 'asc' },
         }),
-        prisma.product.count({
-        where: {
-            OR: [
-            { id: { contains: search, mode: 'insensitive' } },
-            { categoryId: { contains: search, mode: 'insensitive' } },
-            ],
-        }}),
+        prisma.product.count({ where: whereClause }),
     ]);
 
-    return {
-        items,
-        totalPages: Math.ceil(totalCount / pageSize),
-        totalCount
-    };
+    return { items, totalPages: Math.ceil(totalCount / pageSize), totalCount };
 }
 
 
