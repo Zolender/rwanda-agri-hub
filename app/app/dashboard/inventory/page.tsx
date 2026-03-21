@@ -6,16 +6,13 @@ export const dynamic = 'force-dynamic';
 export default async function InventoryPage({
     searchParams,
     }: {
-    // 1. Update the type to a Promise
     searchParams: Promise<{ page?: string; query?: string }>;
     }) {
-    // 2. Await the promise to get the actual values
     const resolvedParams = await searchParams;
     
     const currentPage = Number(resolvedParams.page) || 1;
     const query = resolvedParams.query || "";
 
-    // 3. Now the rest of your logic will work perfectly
     const { items, totalPages, totalCount } = await getPaginatedInventory(currentPage, query);
 
     return (
