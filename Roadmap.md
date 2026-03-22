@@ -326,4 +326,4 @@ The project is considered **production-ready** when:
 
 **Version:** 1.0  
 **Maintainer:** @Zolender  
-**License:** none yet
+**License:** MIT
