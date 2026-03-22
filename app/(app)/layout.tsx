@@ -1,6 +1,6 @@
 import { auth } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
-import SidebarNav from "@/app/app/components/SideBarNav";
+import SidebarNav from "@/app/(app)/components/SideBarNav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
     const session = await auth();

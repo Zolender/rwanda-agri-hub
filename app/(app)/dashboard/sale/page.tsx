@@ -1,4 +1,4 @@
-import QuickSale from "@/app/app/components/inventory/QuickSale";
+import QuickSale from "@/app/(app)/components/inventory/QuickSale";
 import { History } from "lucide-react";
 
 export default function SalePage() {

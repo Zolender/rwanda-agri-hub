@@ -1,5 +1,5 @@
 import React from 'react';
-import prisma from '@/app/lib/db'; // Note: Use the path to your lib/db.ts
+import prisma from '@/app/lib/db'; 
 
 export default async function TransactionsPage() {
   // This is a "Server Component"

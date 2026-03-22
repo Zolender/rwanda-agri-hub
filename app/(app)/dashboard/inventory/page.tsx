@@ -1,5 +1,5 @@
 import { getPaginatedInventory } from "@/app/lib/actions/inventory";
-import InventoryTable from "@/app/app/components/inventory/InventoryTable";
+import InventoryTable from "@/app/(app)/components/inventory/InventoryTable";
 
 export const dynamic = 'force-dynamic';
 

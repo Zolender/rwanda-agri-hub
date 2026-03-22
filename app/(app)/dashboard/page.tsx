@@ -1,5 +1,5 @@
 import prisma from "@/app/lib/db";
-import StatCard from "@/app/app/components/dashboard/StatCard";
+import StatCard from "@/app/(app)/components/dashboard/StatCard";
 import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react";
 
 export default async function DashboardPage() {
