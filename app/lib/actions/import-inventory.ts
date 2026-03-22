@@ -2,7 +2,7 @@
 
 import prisma from "@/app/lib/db";
 import { auth } from "@/app/lib/auth";
-import { z } from "zod";
+import { success, z } from "zod";
 import { revalidatePath } from "next/cache";
 
 // 1. Schema matching your CSV headers exactly
@@ -30,62 +30,91 @@ const RowSchema = z.object({
 });
 
 export async function importInventoryAction(data: any[]) {
-    const session = await auth();
-    if (!session || (session.user?.role !== "ADMIN" && session.user?.role !== "MANAGER")) {
-        return { success: false, error: "Unauthorized" };
+    const session = await auth()
+    if(!session || (session.user?.role !== "ADMIN" && session.user?.role !== "MANAGER")){
+        return { success: false, error: "Unauthorized"};
     }
+    try{
+        //we validate all the rows first
 
-    try {
-        // 1. Map the data through Zod first to catch errors early
-        const validatedRows = data
-        .filter(row => row.product_id)
-        .map(row => RowSchema.parse(row));
+        const validatedRows = data.filter(row => row.product_id).map(row => RowSchema.parse(row));
+        const results = []
+        const errors = []
 
-        // 2. Run the upserts. Using Promise.all handles them in parallel 
-        // without the strict 5-second transaction timeout.
-        const results = await Promise.all(
-        validatedRows.map((v) => 
-            prisma.product.upsert({
-            where: { id: v.product_id },
-            update: {
-                quantity: v.product_stock,
-                unitCostRwf: v.unit_cost_rwf,
-                sellingPriceRwf: v.selling_price_rwf,
-                landedCostRwf: v.landed_cost_rwf,
-            },
-            create: {
-                id: v.product_id,
-                categoryId: v.category_id,
-                unitOfMeasure: v.unit_of_measure,
-                unitCostRwf: v.unit_cost_rwf,
-                sellingPriceRwf: v.selling_price_rwf,
-                landedCostRwf: v.landed_cost_rwf,
-                reorderPointUnits: v.reorder_point,
-                leadTimeBufferDays: v.lead_time_days,
-                quantity: v.product_stock,
-                transactions: {
-                create: {
-                    orderId: v.order_id,
-                    movementType: v.movement_type,
-                    quantityOrderedUnits: v.quantity_ordered_units,
-                    quantityFulfilledUnits: v.quantity_fulfilled_units,
-                    remainingStockUnits: v.remaining_stock_units,
-                    region: v.region,
-                    customerId: v.customer_id,
-                    supplierId: v.supplier_id,
-                    poId: v.po_id,
-                    transactionDate: new Date(),
-                },
-                },
-            },
-            })
-        )
-    );
+        // now we process each row with retry logic
+        for(const row of validatedRows){
+            let attempts = 0;
+            const maxAttempts = 3;
+            let lastError= null;
+            while(attempts < maxAttempts){
+                try{
+                    const result = await prisma.product.upsert({
+                        where: { id: row.product_id},
+                        update: {
+                            quantity: row.product_stock,
+                            unitCostRwf: row.unit_cost_rwf,
+                            sellingPriceRwf: row.selling_price_rwf,
+                            landedCostRwf: row.landed_cost_rwf,
+                        },
+                        create: {
+                            id: row.product_id,
+                            categoryId: row.category_id,
+                            unitOfMeasure: row.unit_of_measure,
+                            unitCostRwf: row.unit_cost_rwf,
+                            sellingPriceRwf: row.selling_price_rwf,
+                            landedCostRwf: row.landed_cost_rwf,
+                            reorderPointUnits: row.reorder_point,
+                            leadTimeBufferDays: row.lead_time_days,
+                            quantity: row.product_stock,
+                            transactions: {
+                                create: {
+                                    orderId: row.order_id,
+                                    movementType: row.movement_type,
+                                    quantityOrderedUnits: row.quantity_ordered_units,
+                                    quantityFulfilledUnits: row.quantity_fulfilled_units,
+                                    remainingStockUnits: row.remaining_stock_units,
+                                    region: row.region,
+                                    customerId: row.customer_id,
+                                    supplierId: row.supplier_id,
+                                    poId: row.po_id,
+                                    transactionDate: new Date(),
+                                }
+                            }
+                        }   
+                    })
+                    results.push(result)
+                    break
+                }catch (error: any){
+                    attempts++
+                    lastError = error;
 
-    revalidatePath("/dashboard");
-    return { success: true, count: results.length };
-    } catch (error: any) {
+                    if(attempts>= maxAttempts){
+                        //that means the final attempt failed
+                        errors.push({
+                            product_id: row.product_id,
+                            error: error.message || "Unknown error",
+                        })
+                    }else{
+                        //we would wait before retrying with more rest time between retries
+                        await new Promise (resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)))
+                    }
+                }
+            }
+        }
+        revalidatePath("/dashboard");
+        return{
+            success: errors.length === 0,
+            count: results.length,
+            errors: errors.length > 0 ? errors  : undefined,
+            message : errors.length > 0? 
+                                    `Imported ${results.length} products, ${errors.length} failed.`
+                                    : `Successfully imported ${results.length} products.`
+        }
+    }catch(error: any){
         console.error("Import Error Details:", error);
-        return { success: false, error: error.message || "Validation failed on one or more rows." };
+        return {
+            success: false,
+            error: error.message || "Validation failed on on or more rows."
+        }
     }
 }

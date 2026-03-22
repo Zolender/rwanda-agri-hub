@@ -67,9 +67,16 @@ export default function ImportPage() {
                     
                     try {
                         const response = await importInventoryAction(chunk);
-                        if (response && response.success) {
-                            totalImported += (response.count ?? 0);
-                            toast.success(`Processed rows ${startRow}-${endRow} of ${allData.length}`, {duration: 2000})
+                        if (response && response.count !== undefined && response.count > 0) {
+                            totalImported += response.count
+
+                            //let's now handle partial success
+                            if(response.errors && response.errors.length > 0){
+                                console.warn("Some products failed: ", response.errors)
+                                toast.warning(response.message || `${response.errors.length} products failed`);
+                            }else{
+                                toast.success(`Processed rows ${startRow}-${endRow}`, {duration: 2000})
+                            }
                         } else {
                             // LOG 2: If the server returns an error, show it
                             console.error(`Server Error at row ${startRow}:`, response?.error);
