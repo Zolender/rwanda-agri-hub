@@ -23,6 +23,17 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Edge Runtime compatibility (split auth config)
 - [x] Database singleton pattern (Prisma 7 adapter)
 
+### Recent Additions (2026-03-22)  ← ADD THIS
+- [x] Environment setup documentation (.env.example)
+- [x] Comprehensive development roadmap (ROADMAP.md)
+- [x] Testing infrastructure (Vitest)
+- [x] CSV validation tests (3 test cases)
+- [x] Import retry logic (3 attempts with exponential backoff)
+- [x] Improved progress tracking (real-time updates)
+- [x] Public/protected route separation
+- [x] Landing page with dynamic auth state
+- [x] Middleware configuration for public routes
+
 ### Challenges Solved (16 total)
 - [x] Prisma v7 driver adapter configuration
 - [x] Edge Runtime crypto module compatibility
@@ -50,24 +61,24 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add API documentation (Server Actions)
 
 ### 1.2 Code Quality & Testing
-- [ ] Install Vitest + testing dependencies
-- [ ] Write CSV validation tests (Zod schemas)
+- [x] Install Vitest + testing dependencies
+- [x] Write CSV validation tests (Zod schemas)
 - [ ] Write Server Action tests (import logic)
 - [ ] Add ESLint rules for best practices
 - [x] Set up Prettier for consistent formatting
 - [ ] Add pre-commit hooks (Husky + lint-staged)
 
 ### 1.3 Project Structure Refactoring
-- [ ] Refactor `app/app/` → `app/(dashboard)/` route group
-- [ ] Refactor `app/login/` → `app/(public)/login/`
-- [ ] Create `app/(public)/page.tsx` (landing page)
+- [x] Refactor `app/app/` → `app/(dashboard)/` route group
+- [x] Refactor `app/login/` → `app/(public)/login/`
+- [x] Create `app/(public)/page.tsx` (landing page)
 - [ ] Organize components into feature folders
 - [ ] Move shared utilities to `lib/utils/`
 - [ ] Create `lib/schemas/` for Zod schemas
 
 ### 1.4 Import Feature (Polish)
-- [ ] Add retry logic (3 attempts per row)
-- [ ] Improve progress tracking (show row numbers)
+- [x] Add retry logic (3 attempts per row)
+- [x] Improve progress tracking (show row numbers)
 - [ ] Add "partial success" UI (show failed rows)
 - [ ] Add "download error report" button (CSV export)
 - [ ] Add import history tracking (who imported when)
@@ -277,9 +288,36 @@ The project is considered **production-ready** when:
 
 ---
 
+## 📅 Progress Log
+
+### 2026-03-22 (Checkpoint 1)
+**Focus:** Foundation & Testing Setup
+
+**Completed:**
+- ✅ Created `.env.example` for environment setup
+- ✅ Added comprehensive `ROADMAP.md`
+- ✅ Set up Vitest testing infrastructure
+- ✅ Wrote 3 CSV validation tests (all passing)
+- ✅ Implemented retry logic for import (3 attempts, exponential backoff)
+- ✅ Improved progress tracking with real-time updates
+- ✅ Refactored to `app/(app)` route group structure
+- ✅ Created landing page with auth-aware UI
+- ✅ Configured middleware for public/protected routes
+
+**Next Session Priority:**
+- [ ] Add "partial success" UI to import (show which products failed)
+- [ ] Add download error report button
+- [ ] Write Server Action integration tests
+- [ ] Move login to `(public)` group for consistency
+
+**Time Invested:** ~2-3 hours  
+**Tests Passing:** 3/3 ✅  
+**Build Status:** ✅ Working  
+**Deployment Status:** Local dev only
+
 ## 📝 Notes
 
-- Keep updating this roadmap as you complete tasks
+- Keep updating this roadmap as I complete tasks
 - Move completed items to "Completed" section
 - Add new discoveries to "Challenges Solved"
 - Celebrate small wins! 🎉
@@ -288,4 +326,4 @@ The project is considered **production-ready** when:
 
 **Version:** 1.0  
 **Maintainer:** @Zolender  
-**License:** MIT
+**License:** none yet

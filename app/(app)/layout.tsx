@@ -15,13 +15,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </h2>
             </div>
 
-            {/* SWAP: Replace the old <nav> with your new component */}
             <div className="flex-1">
-            <SidebarNav /> 
+                <SidebarNav /> 
             </div>
 
             <div className="p-4 border-t border-slate-100">
-            {/* Keep your user profile/logout section here as it's already beautiful */}
             </div>
         </aside>
 
