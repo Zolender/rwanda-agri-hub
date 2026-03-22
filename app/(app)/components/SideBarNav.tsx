@@ -17,11 +17,11 @@ export default function SidebarNav() {
     const role = session?.user?.role;
 
     const navItems = [
-        { name: 'Dashboard', href: '/app/dashboard', icon: LayoutDashboard, minRole: 'ANALYST' },
-        { name: 'Transactions', href: '/app/transactions', icon: History, minRole: 'ANALYST' },
-        { name: 'Record Sale', href: '/app/dashboard/sale', icon: ShoppingBag, minRole: 'ANALYST' },
-        { name: 'Import Data', href: '/app/import', icon: FileUp, minRole: 'MANAGER' },
-        { name: 'Admin', href: '/app/admin', icon: ShieldCheck, minRole: 'ADMIN' },
+        { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, minRole: 'ANALYST' },
+        { name: 'Transactions', href: '/transactions', icon: History, minRole: 'ANALYST' },
+        { name: 'Record Sale', href: '/dashboard/sale', icon: ShoppingBag, minRole: 'ANALYST' },
+        { name: 'Import Data', href: '/import', icon: FileUp, minRole: 'MANAGER' },
+        { name: 'Admin', href: '/admin', icon: ShieldCheck, minRole: 'ADMIN' },
     ];
 
     const filteredItems = navItems.filter((item) => {
