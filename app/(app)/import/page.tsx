@@ -59,27 +59,35 @@ export default function ImportPage() {
 
                 for (let i = 0; i < allData.length; i += chunkSize) {
                     const chunk = allData.slice(i, i + chunkSize);
+                    const startRow = i + 1;
+                    const endRow = Math.min(i+chunkSize, allData.length)
+
+                    setProgress(Math.round((i/allData.length) * 100));
                     
                     
                     try {
                         const response = await importInventoryAction(chunk);
                         if (response && response.success) {
                             totalImported += (response.count ?? 0);
-                            setProgress(Math.round((i / allData.length) * 100));
+                            toast.success(`Processed rows ${startRow}-${endRow} of ${allData.length}`, {duration: 2000})
                         } else {
                             // LOG 2: If the server returns an error, show it
-                            console.error(`Server Error at row ${i}:`, response?.error);
+                            console.error(`Server Error at row ${startRow}:`, response?.error);
                             toast.error(response?.error || "Import failed at a chunk.");
                             break; 
                         }
                     } catch (err) {
                         console.error("Network Fetch Error:", err);
+                        toast.error("Network error during import. Please check your connecion.")
                         break;
                     }
                 }
 
+                setProgress(100);
+
                 if (totalImported > 0) {
                     toast.success(`Mission Accomplished! ${totalImported} items imported.`);
+                
                     setFile(null);
                 } else {
                     toast.error("Import finished but 0 records were saved. Check the console.");
@@ -106,7 +114,8 @@ export default function ImportPage() {
                     <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm text-center space-y-4">
                         <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto" />
                             <h3 className="font-semibold text-slate-800">Importing Data...</h3>
-                            <p className="text-sm text-slate-500">Please stay on this page to ensure all {progress}% of your data is saved.</p>
+                            <p className="text-sm text-slate-500">Progress: {progress}%</p>
+                            <p className="text-xs text-slate-400 mt-1">Please stay on this page until complete.</p>
                     </div>
                 </div>
                 )}
