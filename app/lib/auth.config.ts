@@ -15,13 +15,19 @@ export const authConfig = {
     callbacks: {
         authorized({ auth, request: { nextUrl } }) {
         const isLoggedIn = !!auth?.user;
-        const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
-        const isOnTransactions = nextUrl.pathname.startsWith("/transactions");
+        const {pathname} = nextUrl
 
-        if (isOnDashboard || isOnTransactions) {
-            if (isLoggedIn) return true;
-            return false; // Redirect unauthenticated users to login
+        const publicRoutes = ['/','/login']
+        const isPublicRoute = publicRoutes.includes(pathname);
+
+        if (isPublicRoute) {
+            return true; 
         }
+
+        if(!isLoggedIn){
+            return false;
+        }
+
         return true;
         },
     },
