@@ -46,7 +46,57 @@ model Transaction {
   lostSaleQtyUnits      Int          @default(0)
   transactionDate       DateTime     
   createdAt             DateTime     @default(now())
+
+  shipment              Shipment?
+  fxRate                FXRate?
+  metrics               TransactionMetrics?
 }
+
+
+
+model Shipment{
+  id                    String       @id @default(cuid())
+  transactionId         String       @unique
+  transaction           Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  shipType              String?
+  country               String?
+  portName              String?
+  cargoDescription      String?
+  arrivalTime           DateTime?
+  departureTime         DateTime?
+  portDelays            Int?
+  lastPort              String?
+  nextPort              String?
+  currentStatus         String?
+
+  createdAt             DateTime    @default(now())
+}
+
+
+model FXRate{
+  id                    String       @id @default(cuid())
+  transactionId         String       @unique
+  transaction           Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  usdToRwf              Float?
+  eurToRwf              Float?
+  timestamp             DateTime?
+  fxVolatility          Float?
+  createdAt             DateTime    @default(now())
+
+}
+
+
+model TransactionMetrics{
+  id                    String       @id @default(cuid())
+  transactionId         String       @unique
+  transaction           Transaction  @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  fulfillmentRation     Float?
+  stockPressure         Float?
+  createdAt             DateTime     @default(now())
+}
+
+
+
 
 
 // --- AUTH TABLES ---
