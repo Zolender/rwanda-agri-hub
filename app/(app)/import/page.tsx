@@ -5,6 +5,8 @@ import { useState, useEffect} from 'react';
 import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
 import { toast } from 'sonner';
+import { resetInventoryAction } from '@/app/lib/actions/reset-inventory';
+import { TriangleAlert } from 'lucide-react';
 
 
 
@@ -12,6 +14,7 @@ export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [isResetting, setIsResetting] = useState(false);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -105,6 +108,30 @@ export default function ImportPage() {
         });
     };
 
+    const handleReset = async ()=>{
+        const confirmed = window.confirm("WARNING: This will DELETE ALL products, transactions, shipments, FX rates, and metrics.\n\nUser accounts will NOT be affected\n\n\This action CANNOT be undone.\n\nType 'DELETE' in the next propt to confirm.")
+        if(!confirmed)return 
+        const secondConfirm = window.prompt("Type DELETE(in all caps) to confirm:")
+        if(secondConfirm !== 'DELETE'){
+            toast.error("Reset cancelled. You did not type Delete correctly.")
+            return
+        }
+        setIsResetting(true);
+        try{
+            const response = await resetInventoryAction();
+
+            if(response.success){
+                toast.success(response.message || "Database reset successfully")
+            }else{
+                toast.error(response.error || "Failed to reset database")
+            }
+        }catch(err: any){
+            toast.error(err.message || "Network error during reset")
+        }finally{
+            setIsResetting(false)
+        }
+    }
+        
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) setFile(e.target.files[0]);
     };
@@ -157,6 +184,17 @@ export default function ImportPage() {
         >
             {isUploading ? 'Processing Data...' : 'Start Import'}
         </button>
+        <div className="mt-8 border-2 border-red-200 bg-red-50 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-red-900 mb-2 flex items-center gap-2">
+                <TriangleAlert size={22}/> Danger Zone
+            </h3>
+            <p className="text-sm text-red-700 mb-4">This will permanently delete all inventory data (products, transactions, shipments, FX rates, metrics). <br /> <strong>User accounts are Not affected.</strong></p>
+            <button
+                onClick={handleReset}
+                disabled={isResetting || isUploading}
+                className='px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors'
+            >{isResetting? "Resetting..." : "Reset Database"}</button>
+        </div>
         </div>
     );
 }
