@@ -83,7 +83,7 @@ export async function importInventoryAction(data: any[]){
                                     data: {
                                         transactionId: transaction.id,
                                         usdToRwf: row.USD_RWF,
-                                        euroToRwf: row.EUR_RWF,
+                                        eurToRwf: row.EUR_RWF,
                                         timestamp: row.timestamp? new Date(row.timestamp): null,
                                         fxVolatility: row.fx_volatility,
                                     }
