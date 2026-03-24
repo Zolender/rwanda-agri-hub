@@ -47,7 +47,7 @@ export async function getPaginatedInventory(page: number = 1, search: string = "
 
 
 
-    export async function recordSaleAction(productId: string, quantitySold: number, region: string) {
+export async function recordSaleAction(productId: string, quantitySold: number, region: string) {
     try {
         const result = await prisma.$transaction(async (tx) => {
         const product = await tx.product.findUnique({ where: { id: productId } });
@@ -65,6 +65,7 @@ export async function getPaginatedInventory(page: number = 1, search: string = "
             productId,
             movementType: "Sale",
             remainingStockUnits: updated.quantity,
+            quantityOrderedUnits: quantitySold,
             region,
             orderId: `SALE-${Date.now()}`,
             transactionDate: new Date(),
