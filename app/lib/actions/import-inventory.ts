@@ -50,7 +50,6 @@ export async function importInventoryAction(data: any[]){
                                 orderId: row.order_id,
                                 movementType: row.movement_type,
                                 quantityOrderedUnits: row.quantity_ordered_units,
-                                quantityFulfilledUnits: row.quantity_fulfilled_units || 0,
                                 remainingStockUnits: row.remaining_stock_units,
                                 customerId: row.customer_id,
                                 supplierId: row.supplier_id,

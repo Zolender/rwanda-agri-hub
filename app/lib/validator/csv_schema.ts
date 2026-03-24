@@ -12,7 +12,6 @@ export const TransactionCsvSchema = z.object({
 
     movement_type: z.enum(['Sale', 'Adjustment', 'Purchase']),
     quantity_ordered_units: z.coerce.number().optional().default(0),
-    quantity_fulfilled_units: z.coerce.number(),
     remaining_stock_units: z.coerce.number(),
     order_id: z.string(),
     customer_id: z.string().optional(),

@@ -37,7 +37,6 @@ model Transaction {
   product               Product      @relation(fields: [productId], references: [id])
   movementType          MovementType
   quantityOrderedUnits  Int?
-  quantityFulfilledUnits Int
   remainingStockUnits   Int          
   customerId            String?
   supplierId            String?
