@@ -14,7 +14,22 @@ export default function ImportPage() {
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [displayProgress, setDisplayProgress] = useState(0)
     const [isResetting, setIsResetting] = useState(false);
+    
+    
+    useEffect(()=>{
+        if(displayProgress < progress){
+            const timer = setTimeout(()=>{
+                setDisplayProgress(prev =>{
+                    const diff = progress - prev
+                    const increment = Math.max(1,Math.ceil(diff/10))
+                    return Math.min(prev+increment , progress)
+                })
+            }, 50)
+            return ()=> clearTimeout(timer)
+        }
+    }, [progress, displayProgress])
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -39,6 +54,8 @@ export default function ImportPage() {
         if (!window.confirm(confirmMessage)) return;
 
         setIsUploading(true);
+        setProgress(0)
+        setDisplayProgress(0)
 
         Papa.parse(file, {
             header: true,
