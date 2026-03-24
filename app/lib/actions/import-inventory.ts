@@ -117,6 +117,7 @@ export async function importInventoryAction(data: any[]){
                     })
                 }
             }
+        
             revalidatePath("/dashboard")
             revalidatePath("/transactions")
             return {
