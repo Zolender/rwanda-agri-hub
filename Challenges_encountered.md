@@ -145,3 +145,17 @@ Solution:
 * Implemented the beforeunload browser event listener that triggers only while isUploading is true.
 * Added a "Confirmation Question" (window.confirm) before the import starts.
 * Implemented a fixed inset-0 UI overlay that visually locks the screen and shows a progress percentage, preventing accidental navigation within the app.
+## 17. Schema Evolution & Missing Required Fields
+
+Challenge:
+* After making `quantityOrderedUnits` a required field (removing the `?` optional marker) in the Prisma schema, the CSV import began failing with cryptic "endpoint doesn't exist" errors. The browser's network tab showed requests stuck in "pending" state indefinitely.
+
+Why it happened:
+* The schema was updated to make `quantityOrderedUnits` required (changed from `Int?` to `Int`), but the `recordSaleAction` function in `inventory.ts` was still written for the old schema and wasn't providing this field when creating transactions.
+* The generated Prisma client was out of sync with the actual database schema, causing type mismatches between the code and the database.
+
+Solution:
+* Updated `recordSaleAction` in `inventory.ts` to include `quantityOrderedUnits: quantitySold` in the transaction creation.
+* Ran `npx prisma generate` to regenerate the Prisma client with the updated schema.
+* Restarted the development server to ensure the new Prisma client was loaded.
+* This highlighted the importance of keeping all server actions synchronized when schema fields change from optional to required.
