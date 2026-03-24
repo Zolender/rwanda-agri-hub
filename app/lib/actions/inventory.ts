@@ -64,7 +64,6 @@ export async function getPaginatedInventory(page: number = 1, search: string = "
             data: {
             productId,
             movementType: "Sale",
-            quantityFulfilledUnits: quantitySold,
             remainingStockUnits: updated.quantity,
             region,
             orderId: `SALE-${Date.now()}`,
