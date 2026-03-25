@@ -17,13 +17,16 @@ export default async function DashboardPage() {
 // Calculate the total value (Sum of costs)
 const totalValue = inventoryData._sum.unitCostRwf || 0;
 
-    const lowStockItems = await prisma.product.count({
-        where: {
-            quantity: {
-            lt: prisma.product.fields.reorderPointUnits
-            }
-        }
-    });
+const allProducts = await prisma.product.findMany({
+    select: {
+        quantity: true,
+        reorderPointUnits: true
+    }
+})
+
+const lowStockItems = allProducts.filter( p => p.quantity<= p.reorderPointUnits).length
+
+    
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
