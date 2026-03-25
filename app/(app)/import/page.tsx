@@ -178,6 +178,32 @@ export default function ImportPage() {
         if (e.target.files) setFile(e.target.files[0]);
     };
 
+
+const downloadErrorReport=()=>{
+    if(!importResults||importResults.errors.length === 0)return
+    const headers = ["Row Number", "Product ID", "Error"]
+    const rows = importResults.errors.map( err => [err.rowNumber || "Unknown",
+        err.productId,
+        err.error
+    ])
+    const csvContent = [
+        headers.join(','),...rows.map(row=>row.map(cell=>`"${cell}`).join(","))
+    ].join("\n")
+
+    const blob = new Blob([csvContent], {type: "text/csv;charset=utf-8"});
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `import-errors-${new Date().toISOString().slice(0,10)}.csv`)
+    link.style.visibility = "hidden"
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    toast.success("Error report downladed!")
+}
+
     return (
         <div className="max-w-4xl mx-auto space-y-8">
         <header>
