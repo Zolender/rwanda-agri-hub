@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
 import { toast } from 'sonner';
 import { resetInventoryAction } from '@/app/lib/actions/reset-inventory';
-import { TriangleAlert, Download, AlertCircle, CheckCircle } from 'lucide-react';
+import { TriangleAlert, Download, AlertCircle, CheckCircle, Plus } from 'lucide-react';
 
 
 type ImportError = {
@@ -231,12 +231,99 @@ const downloadErrorReport=()=>{
                     </div>
                 </div>
                 )}
+
+
+                {importResults && (
+                <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold text-slate-800">Import Results</h2>
+                        {importResults.errorCount > 0 && (
+                            <button
+                                onClick={downloadErrorReport}
+                                className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                            >
+                                <Download size={16} />
+                                Download Error Report
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-3 gap-4">
+                        <div className="bg-slate-50 rounded-xl p-4">
+                            <div className="text-slate-500 text-sm">Total Processed</div>
+                            <div className="text-2xl font-bold text-slate-900 mt-1">
+                                {importResults.totalProcessed}
+                            </div>
+                        </div>
+                        
+                        <div className="bg-green-50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 text-green-700 text-sm">
+                                <CheckCircle size={16} />
+                                Successful
+                            </div>
+                            <div className="text-2xl font-bold text-green-700 mt-1">
+                                {importResults.successCount}
+                            </div>
+                        </div>
+                        
+                        <div className="bg-red-50 rounded-xl p-4">
+                            <div className="flex items-center gap-2 text-red-700 text-sm">
+                                <AlertCircle size={16} />
+                                Failed
+                            </div>
+                            <div className="text-2xl font-bold text-red-700 mt-1">
+                                {importResults.errorCount}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Error Details Table */}
+                    {importResults.errors.length > 0 && (
+                        <div className="mt-6">
+                            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+                                Failed Records ({importResults.errors.length})
+                            </h3>
+                            <div className="border border-slate-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50 sticky top-0">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Row
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Product ID
+                                            </th>
+                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                                Error
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-slate-200">
+                                        {importResults.errors.map((err, idx) => (
+                                            <tr key={idx} className="hover:bg-slate-50">
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900">
+                                                    {err.rowNumber || 'N/A'}
+                                                </td>
+                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
+                                                    {err.productId}
+                                                </td>
+                                                <td className="px-4 py-3 text-sm text-red-600">
+                                                    {err.error}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
         
         <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4 hover:border-emerald-300 transition-colors">
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M12 4v16m8-8H4" />
-            </svg>
+                <Plus className='w-8 h-8' strokeWidth={1.5}/>
             </div>
             
             <div className="text-center">
@@ -262,6 +349,10 @@ const downloadErrorReport=()=>{
         >
             {isUploading ? 'Processing Data...' : 'Start Import'}
         </button>
+
+
+
+
         <div className="mt-8 border-2 border-red-200 bg-red-50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-red-900 mb-2 flex items-center gap-2">
                 <TriangleAlert size={22}/> Danger Zone
