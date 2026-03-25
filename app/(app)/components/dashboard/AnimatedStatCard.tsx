@@ -1,13 +1,19 @@
 'use client';
 
-import { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { 
+    Package, 
+    AlertTriangle, 
+    BadgeDollarSign, 
+    Activity,
+    LucideIcon 
+} from 'lucide-react';
 
-interface StatCardProps {
+interface AnimatedStatCardProps {
     title: string;
     value: string | number;
-    icon: LucideIcon;
+    iconName: 'Package' | 'AlertTriangle' | 'BadgeDollarSign' | 'Activity';
     description?: string;
     trend?: {
         value: number;
@@ -15,9 +21,17 @@ interface StatCardProps {
     };
 }
 
-export default function StatCard({ title, value, icon: Icon, description, trend }: StatCardProps) {
+const iconMap: Record<string, LucideIcon> = {
+    Package,
+    AlertTriangle,
+    BadgeDollarSign,
+    Activity,
+};
+
+export default function AnimatedStatCard({ title, value, iconName, description, trend }: AnimatedStatCardProps) {
     const [count, setCount] = useState(0);
     const numericValue = typeof value === 'number' ? value : 0;
+    const Icon = iconMap[iconName];
 
     useEffect(() => {
         if (typeof value === 'number') {
@@ -72,9 +86,6 @@ export default function StatCard({ title, value, icon: Icon, description, trend 
             <div>
                 <p className="text-sm font-medium text-stone-500 mb-1">{title}</p>
                 <motion.h3
-                    key={count}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
                     className="text-3xl font-black text-stone-900 tracking-tight"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >

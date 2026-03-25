@@ -3,15 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { motion } from 'framer-motion';
 import { 
     LayoutDashboard, 
     History, 
     FileUp, 
     ShieldCheck, 
-    ShoppingBag 
+    ShoppingBag,
+    LogOut
 } from 'lucide-react';
 
-export default function SidebarNav() {
+export default function SidebarNav({ isDark }: { isDark: boolean }) {
     const pathname = usePathname();
     const { data: session } = useSession();
     const role = session?.user?.role;
@@ -32,45 +34,70 @@ export default function SidebarNav() {
 
     return (
         <div className='flex flex-col h-full justify-between'> 
-            <nav className="space-y-2 px-4 mt-4">
-                {filteredItems.map((item) => {
+            <nav className="space-y-1 px-3 mt-4">
+                {filteredItems.map((item, index) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
 
                     return (
-                        <Link
+                        <motion.div
                             key={item.href}
-                            href={item.href}
-                            className={`flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all ${
-                                isActive 
-                                    ? 'bg-emerald-50 text-emerald-700 shadow-sm font-semibold' 
-                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                            }`}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
                         >
-                            <Icon size={20} />
-                            <span>{item.name}</span>
-                        </Link>
+                            <Link
+                                href={item.href}
+                                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                                    isActive 
+                                        ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' 
+                                        : isDark
+                                        ? 'text-stone-400 hover:bg-stone-800 hover:text-stone-200'
+                                        : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
+                                }`}
+                            >
+                                <Icon className={`w-5 h-5 ${isActive ? '' : 'group-hover:scale-110 transition-transform'}`} />
+                                <span className="font-medium text-sm">{item.name}</span>
+                            </Link>
+                        </motion.div>
                     );
                 })}
             </nav>
 
-            <div className="p-4 border-t border-slate-100">
-                <div className="flex items-center space-x-3 px-2 py-3 mb-2">
-                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold">
+            {/* User Profile */}
+            <div className={`p-4 border-t ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className={`flex items-center gap-3 px-3 py-3 mb-2 rounded-xl ${isDark ? 'bg-stone-800' : 'bg-stone-50'}`}
+                >
+                    <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
                         {session?.user?.name?.[0] || "U"}
                     </div>
-                    <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-slate-700 truncate">{session?.user?.name}</p>
-                        <p className="text-xs text-slate-400 capitalize">{session?.user?.role?.toLowerCase()}</p>
+                    <div className="overflow-hidden flex-1">
+                        <p className={`text-sm font-semibold ${isDark ? 'text-stone-200' : 'text-stone-900'} truncate`}>
+                            {session?.user?.name}
+                        </p>
+                        <p className={`text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'} capitalize`}>
+                            {session?.user?.role?.toLowerCase()}
+                        </p>
                     </div>
-                </div>
+                </motion.div>
                 
-                <button 
+                <motion.button
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => signOut({ callbackUrl: '/' })}
-                    className="w-full text-left px-3 py-2 text-sm text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors flex items-center space-x-2"
+                    className={`w-full px-3 py-2.5 text-sm rounded-lg transition-colors flex items-center gap-2 font-medium ${
+                        isDark 
+                            ? 'text-stone-400 hover:bg-red-950 hover:text-red-400'
+                            : 'text-stone-500 hover:bg-red-50 hover:text-red-600'
+                    }`}
                 >
-                    <span>Sign Out</span>
-                </button>
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                </motion.button>
             </div>
         </div>
     );
