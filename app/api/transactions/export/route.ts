@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         orderBy: {
             transactionDate: 'desc'
         },
-        take: 10000 // Reasonable limit
+        take: 10000 //limit for now oo
     });
 
     // Build CSV
