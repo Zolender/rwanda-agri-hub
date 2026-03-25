@@ -69,6 +69,7 @@ export default function ImportPage() {
         setIsUploading(true);
         setProgress(0)
         setDisplayProgress(0)
+        setImporResults(null)
 
         Papa.parse(file, {
             header: true,
@@ -89,6 +90,7 @@ export default function ImportPage() {
 
                 const chunkSize = 100;
                 let totalImported = 0;
+                const allErrors: ImportError[] = []
 
                 for (let i = 0; i < allData.length; i += chunkSize) {
                     const chunk = allData.slice(i, i + chunkSize);
@@ -105,6 +107,10 @@ export default function ImportPage() {
 
                             //let's now handle partial success
                             if(response.errors && response.errors.length > 0){
+                                const errorsWithRowNumbers = response.errors.map((err,index)=>({
+                                    ...err, rowNumber: startRow + index
+                                }))
+                                allErrors.push(...errorsWithRowNumbers)
                                 console.warn("Some products failed: ", response.errors)
                                 toast.warning(response.message || `${response.errors.length} products failed`);
                             }else{
@@ -124,6 +130,12 @@ export default function ImportPage() {
                 }
 
                 setProgress(100);
+                setImporResults({
+                    totalProcessed: allData.length,
+                    successCount: totalImported,
+                    errorCount: allErrors.length,
+                    errors: allErrors
+                })
 
                 if (totalImported > 0) {
                     toast.success(`Mission Accomplished! ${totalImported} items imported.`);
