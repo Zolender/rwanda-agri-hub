@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, ChevronsUpDown, ChevronUp, Search } from "lucide-react";
+import { ChevronDown, ChevronsUpDown, ChevronUp, Search, Package} from "lucide-react";
 import {useState, useMemo} from "react";
 
 
@@ -67,6 +67,33 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
             ? <ChevronUp className="w-4 h4"/>
             : <ChevronDown className="w-4 h4"/>
     }
+
+
+
+
+    if (products.length === 0) {
+        return (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+                <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Package size={32} />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                    No Products Yet
+                </h3>
+                <p className="text-slate-500 mb-6">
+                    Get started by importing your inventory data from a CSV file.
+                </p>
+                <a
+                    href="/import"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                >
+                    Import Your First CSV
+                </a>
+            </div>
+        );
+    }
+
+
 
     
     return (
