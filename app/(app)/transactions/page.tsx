@@ -1,10 +1,12 @@
 import prisma from "@/app/lib/db";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, format } from "date-fns";
+import FiltersBar from "@/app/(app)/components/transactions/FiltersBar";
 
 type SearchParams = {
     page?: string;
     movementType?: string;
     region?: string;
+    productId?: string;
     from?: string;
     to?: string;
 };
@@ -31,6 +33,13 @@ export default async function TransactionsPage({
             mode: 'insensitive'
         };
     }
+
+    if (searchParams.productId) {
+        where.productId = {
+            contains: searchParams.productId,
+            mode: 'insensitive'
+        };
+    }
     
     if (searchParams.from || searchParams.to) {
         where.transactionDate = {};
@@ -38,7 +47,10 @@ export default async function TransactionsPage({
             where.transactionDate.gte = new Date(searchParams.from);
         }
         if (searchParams.to) {
-            where.transactionDate.lte = new Date(searchParams.to);
+            // Set to end of day
+            const toDate = new Date(searchParams.to);
+            toDate.setHours(23, 59, 59, 999);
+            where.transactionDate.lte = toDate;
         }
     }
 
@@ -66,22 +78,30 @@ export default async function TransactionsPage({
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
+    // Helper to build pagination links
+    const buildPaginationLink = (newPage: number) => {
+        const params = new URLSearchParams();
+        if (searchParams.movementType) params.set('movementType', searchParams.movementType);
+        if (searchParams.region) params.set('region', searchParams.region);
+        if (searchParams.productId) params.set('productId', searchParams.productId);
+        if (searchParams.from) params.set('from', searchParams.from);
+        if (searchParams.to) params.set('to', searchParams.to);
+        params.set('page', newPage.toString());
+        return `/transactions?${params.toString()}`;
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-2xl font-bold text-slate-800">Transactions</h1>
                 <p className="text-sm text-slate-500 mt-1">
-                    {totalCount.toLocaleString()} total movements
+                    View and filter all inventory movements
                 </p>
             </div>
 
-            {/* Filters Section - We'll build this next session */}
-            <div className="bg-white rounded-lg shadow p-4">
-                <p className="text-slate-500 text-sm">
-                    🚧 Filters coming next session (movement type, region, date range, search)
-                </p>
-            </div>
+            {/* Filters Section */}
+            <FiltersBar totalCount={totalCount} />
 
             {/* Transactions Table */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -94,6 +114,9 @@ export default async function TransactionsPage({
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                                     Product ID
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
+                                    Category
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
                                     Type
@@ -112,18 +135,29 @@ export default async function TransactionsPage({
                         <tbody className="divide-y divide-slate-200">
                             {transactions.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
-                                        No transactions found
+                                    <td colSpan={7} className="px-6 py-12 text-center">
+                                        <div className="text-slate-500">
+                                            <p className="text-lg font-medium mb-1">No transactions found</p>
+                                            <p className="text-sm">Try adjusting your filters or import some data</p>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
                                 transactions.map((txn) => (
                                     <tr key={txn.id} className="hover:bg-slate-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                            {formatDistanceToNow(txn.transactionDate, { addSuffix: true })}
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm text-slate-900">
+                                                {format(txn.transactionDate, 'MMM d, yyyy')}
+                                            </div>
+                                            <div className="text-xs text-slate-500">
+                                                {formatDistanceToNow(txn.transactionDate, { addSuffix: true })}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                                             {txn.product.id}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                                            {txn.product.categoryId}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -135,7 +169,7 @@ export default async function TransactionsPage({
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                            {txn.quantityOrderedUnits.toLocaleString()}
+                                            {txn.quantityOrderedUnits.toLocaleString()} {txn.product.unitOfMeasure}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                                             {txn.remainingStockUnits.toLocaleString()}
@@ -151,33 +185,40 @@ export default async function TransactionsPage({
                 </div>
 
                 {/* Pagination */}
-                <div className="px-6 py-4 bg-slate-50 border-t flex items-center justify-between">
-                    <div className="text-sm text-slate-500">
-                        Page {page} of {totalPages} ({totalCount.toLocaleString()} total)
+                {totalPages > 1 && (
+                    <div className="px-6 py-4 bg-slate-50 border-t flex items-center justify-between">
+                        <div className="text-sm text-slate-500">
+                            Page {page} of {totalPages} ({totalCount.toLocaleString()} total)
+                        </div>
+                        <div className="flex gap-2">
+                            {page > 1 ? (
+                                <a
+                                    href={buildPaginationLink(page - 1)}
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                                >
+                                    Previous
+                                </a>
+                            ) : (
+                                <span className="px-4 py-2 border border-slate-200 text-slate-400 rounded-lg cursor-not-allowed">
+                                    Previous
+                                </span>
+                            )}
+                            
+                            {page < totalPages ? (
+                                <a
+                                    href={buildPaginationLink(page + 1)}
+                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                                >
+                                    Next
+                                </a>
+                            ) : (
+                                <span className="px-4 py-2 border border-slate-200 text-slate-400 rounded-lg cursor-not-allowed">
+                                    Next
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <a
-                            href={`/transactions?page=${page - 1}`}
-                            className={`px-4 py-2 border rounded-lg ${
-                                page <= 1
-                                    ? 'border-slate-200 text-slate-400 cursor-not-allowed'
-                                    : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                            }`}
-                        >
-                            Previous
-                        </a>
-                        <a
-                            href={`/transactions?page=${page + 1}`}
-                            className={`px-4 py-2 border rounded-lg ${
-                                page >= totalPages
-                                    ? 'border-slate-200 text-slate-400 cursor-not-allowed'
-                                    : 'border-slate-300 text-slate-700 hover:bg-slate-50'
-                            }`}
-                        >
-                            Next
-                        </a>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

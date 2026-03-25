@@ -117,7 +117,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                             value={productSearch}
                             onChange={(e) => setProductSearch(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                            className="w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full pl-10 pr-3 py-2 border placeholder:text-slate-500 text-slate-700 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         />
                     </div>
                 </div>
@@ -130,7 +130,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                     <select
                         value={movementType}
                         onChange={(e) => setMovementType(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 border text-slate-500 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     >
                         <option value="">All Types</option>
                         <option value="Sale">Sale</option>
@@ -150,7 +150,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         value={region}
                         onChange={(e) => setRegion(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 border placeholder:text-slate-500 text-slate-700 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                 </div>
 
@@ -163,7 +163,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 placeholder:text-slate-500 text-slate-700 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                 </div>
 
@@ -176,7 +176,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full px-3 py-2 border placeholder:text-slate-500 text-slate-700 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                 </div>
             </div>
