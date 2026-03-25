@@ -23,7 +23,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Edge Runtime compatibility (split auth config)
 - [x] Database singleton pattern (Prisma 7 adapter)
 
-### Recent Additions (2026-03-22)  ← ADD THIS
+### Recent Additions (2026-03-22) 
 - [x] Environment setup documentation (.env.example)
 - [x] Comprehensive development roadmap (ROADMAP.md)
 - [x] Testing infrastructure (Vitest)
@@ -33,6 +33,14 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Public/protected route separation
 - [x] Landing page with dynamic auth state
 - [x] Middleware configuration for public routes
+  
+### Recent Additions (2026-03-25) 
+- [x] Last import timestamp on dashboard
+- [x] Error boundaries (error.tsx)
+- [x] Loading skeletons (loading.tsx)
+- [x] Transactions page foundation (basic table + pagination)
+- [x] Empty states for stock table
+- [x] Dashboard header as client component
 
 ### Challenges Solved (16 total)
 - [x] Prisma v7 driver adapter configuration
@@ -313,6 +321,29 @@ The project is considered **production-ready** when:
 
 **Time Invested:** ~2-3 hours  
 **Tests Passing:** 3/3 ✅  
+**Build Status:** ✅ Working  
+**Deployment Status:** Local dev only
+
+### 2026-03-25 (Checkpoint 2)
+**Focus:** Dashboard Polish + Error Handling + Transactions Foundation
+
+**Completed:**
+- ✅ Fixed dashboard KPI calculations (low stock, inventory value)
+- ✅ Built Stock-on-Hand table with search and sorting
+- ✅ Added last import timestamp with refresh button
+- ✅ Implemented error boundaries (error.tsx)
+- ✅ Added loading skeletons (loading.tsx)
+- ✅ Created transactions page with basic table + pagination
+- ✅ Added empty states for better UX
+
+**Next Session Priority:**
+- [ ] Build FiltersBar component for transactions (client component)
+- [ ] Add date range filter
+- [ ] Add movement type + region filters
+- [ ] Add product search
+
+**Time Invested:** ~2 hours  
+**Phase 1 Progress:** ~85% complete  
 **Build Status:** ✅ Working  
 **Deployment Status:** Local dev only
 
