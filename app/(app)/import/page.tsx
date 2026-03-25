@@ -6,8 +6,14 @@ import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
 import { toast } from 'sonner';
 import { resetInventoryAction } from '@/app/lib/actions/reset-inventory';
-import { TriangleAlert } from 'lucide-react';
+import { TriangleAlert, Download, AlertCircle, CheckCircle } from 'lucide-react';
 
+
+type ImportError = {
+    productId :string,
+    error: string;
+    rowNumber?: number;
+}
 
 
 export default function ImportPage() {
@@ -16,6 +22,13 @@ export default function ImportPage() {
     const [progress, setProgress] = useState(0);
     const [displayProgress, setDisplayProgress] = useState(0)
     const [isResetting, setIsResetting] = useState(false);
+
+    const [importResults, setImporResults] = useState<{
+        totalProcessed: number
+        successCount: number
+        errorCount: number;
+        errors: ImportError[];
+    } | null>(null)
     
     
     useEffect(()=>{
