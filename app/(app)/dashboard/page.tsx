@@ -14,8 +14,18 @@ export default async function DashboardPage() {
         })
 ]);
 
-// Calculate the total value (Sum of costs)
-const totalValue = inventoryData._sum.unitCostRwf || 0;
+// const totalValue = inventoryData._sum.unitCostRwf || 0;
+
+const products = await prisma.product.findMany({
+    select: {
+        quantity: true,
+        unitCostRwf: true
+    }
+})
+
+const totalValue = products.reduce( (sum, p) => sum + (p.quantity * p.unitCostRwf), 0)
+
+
 
 const allProducts = await prisma.product.findMany({
     select: {
