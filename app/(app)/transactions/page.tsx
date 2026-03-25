@@ -14,41 +14,44 @@ type SearchParams = {
 export default async function TransactionsPage({
     searchParams,
 }: {
-    searchParams: SearchParams;
+    searchParams: Promise<SearchParams>; // ← Changed to Promise
 }) {
-    const page = parseInt(searchParams.page || '1');
+    // ← Await searchParams
+    const params = await searchParams;
+    
+    const page = parseInt(params.page || '1');
     const pageSize = 50;
     const skip = (page - 1) * pageSize;
 
     // Build where clause from filters
     const where: any = {};
     
-    if (searchParams.movementType) {
-        where.movementType = searchParams.movementType;
+    if (params.movementType) {
+        where.movementType = params.movementType;
     }
     
-    if (searchParams.region) {
+    if (params.region) {
         where.region = {
-            contains: searchParams.region,
+            contains: params.region,
             mode: 'insensitive'
         };
     }
 
-    if (searchParams.productId) {
+    if (params.productId) {
         where.productId = {
-            contains: searchParams.productId,
+            contains: params.productId,
             mode: 'insensitive'
         };
     }
     
-    if (searchParams.from || searchParams.to) {
+    if (params.from || params.to) {
         where.transactionDate = {};
-        if (searchParams.from) {
-            where.transactionDate.gte = new Date(searchParams.from);
+        if (params.from) {
+            where.transactionDate.gte = new Date(params.from);
         }
-        if (searchParams.to) {
+        if (params.to) {
             // Set to end of day
-            const toDate = new Date(searchParams.to);
+            const toDate = new Date(params.to);
             toDate.setHours(23, 59, 59, 999);
             where.transactionDate.lte = toDate;
         }
@@ -80,14 +83,14 @@ export default async function TransactionsPage({
 
     // Helper to build pagination links
     const buildPaginationLink = (newPage: number) => {
-        const params = new URLSearchParams();
-        if (searchParams.movementType) params.set('movementType', searchParams.movementType);
-        if (searchParams.region) params.set('region', searchParams.region);
-        if (searchParams.productId) params.set('productId', searchParams.productId);
-        if (searchParams.from) params.set('from', searchParams.from);
-        if (searchParams.to) params.set('to', searchParams.to);
-        params.set('page', newPage.toString());
-        return `/transactions?${params.toString()}`;
+        const urlParams = new URLSearchParams();
+        if (params.movementType) urlParams.set('movementType', params.movementType);
+        if (params.region) urlParams.set('region', params.region);
+        if (params.productId) urlParams.set('productId', params.productId);
+        if (params.from) urlParams.set('from', params.from);
+        if (params.to) urlParams.set('to', params.to);
+        urlParams.set('page', newPage.toString());
+        return `/transactions?${urlParams.toString()}`;
     };
 
     return (
