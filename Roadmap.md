@@ -103,13 +103,14 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add "low stock alerts" section
 
 ### 1.6 Transactions Page
-- [ ] Implement date range filter
-- [ ] Implement movement type filter (Sale/Purchase/Adjustment)
-- [ ] Implement region filter
-- [ ] Add product search
-- [ ] Add server-side pagination (with page count)
-- [ ] Add CSV export functionality
-- [ ] Add transaction details modal
+- [x] Basic page structure + table 
+- [x] Server-side pagination 
+- [x] Implement date range filter  
+- [x] Implement movement type filter  
+- [x] Implement region filter  
+- [x] Add product search  
+- [ ] Add CSV export functionality (API route needed)
+- [ ] Add transaction details modal (Phase 2)
 
 ---
 
@@ -283,17 +284,6 @@ The project is considered **production-ready** when:
 - Database backups configured
 - Monitoring/alerting set up
 
----
-
-## 🎯 Current Priority (Next 5 Tasks)
-
-1. **Create `.env.example`** (5 min)
-2. **Refactor folder structure** `app/app/` → `app/(dashboard)/` (30 min)
-3. **Write first test** (CSV validation with Vitest) (20 min)
-4. **Add retry logic to import** (30 min)
-5. **Improve progress tracking UI** (20 min)
-
-**Total time to next checkpoint:** ~2 hours
 
 ---
 

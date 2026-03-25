@@ -170,3 +170,11 @@ Solution:
 * Challenge: Tables showed blank screen while data loaded
 * Solution: Created `loading.tsx` with animated skeleton screens
 * Key Learning: loading.tsx automatically wraps async Server Components in Suspense
+
+
+## 19. Next.js 15 Async searchParams
+
+* Challenge: Filters weren't working - searchParams not being read
+* Root Cause: Next.js 15 changed searchParams to async Promise for Partial Prerendering
+* Solution: Changed type to `Promise<SearchParams>` and added `await searchParams`
+* Key Learning: Next.js 15 made several params async (searchParams, params) for better performance
