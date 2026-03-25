@@ -1,6 +1,7 @@
 import prisma from "@/app/lib/db";
 import StatCard from "@/app/(app)/components/dashboard/StatCard";
 import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react";
+import StockOnHandTable from "../components/dashboard/StockOnHandTable";
 
 export default async function DashboardPage() {
     const [totalProducts, totalTransactions, inventoryData] = await Promise.all([
@@ -39,39 +40,46 @@ const lowStockItems = allProducts.filter( p => p.quantity<= p.reorderPointUnits)
     
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* 1. Total Unique Products */}
-            <StatCard 
-                title="Total Products" 
-                value={totalProducts} 
-                icon={Package} 
-                description="Unique items in catalog"
-            />
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* 1. Total Unique Products */}
+                <StatCard 
+                    title="Total Products" 
+                    value={totalProducts} 
+                    icon={Package} 
+                    description="Unique items in catalog"
+                />
 
-            {/* 2. Low Stock - Using our new AlertTriangle icon! */}
-            <StatCard 
-                title="Low Stock Alerts" 
-                value={lowStockItems} // This will work once you add the quantity field
-                icon={AlertTriangle} 
-                description="Items needing reorder"
-                trend={{ value: lowStockItems > 0 ? 10 : 0, isPositive: false }}
-            />
+                {/* 2. Low Stock - Using our new AlertTriangle icon! */}
+                <StatCard 
+                    title="Low Stock Alerts" 
+                    value={lowStockItems} // This will work once you add the quantity field
+                    icon={AlertTriangle} 
+                    description="Items needing reorder"
+                    trend={{ value: lowStockItems > 0 ? 10 : 0, isPositive: false }}
+                />
 
-            {/* 3. Total Inventory Value (Quantity * Unit Cost) */}
-            <StatCard 
-                title="Inventory Value" 
-                value={`${totalValue.toLocaleString()} Rwf`} 
-                icon={BadgeDollarSign} 
-                description="Based on current stock levels"
-            />
+                {/* 3. Total Inventory Value (Quantity * Unit Cost) */}
+                <StatCard 
+                    title="Inventory Value" 
+                    value={`${totalValue.toLocaleString()} Rwf`} 
+                    icon={BadgeDollarSign} 
+                    description="Based on current stock levels"
+                />
 
-            {/* 4. Movements / Activity */}
-            <StatCard 
-                title="Total Movements" 
-                value={totalTransactions} 
-                icon={Activity} 
-                description="Records in ledger"
-            />
+                {/* 4. Movements / Activity */}
+                <StatCard 
+                    title="Total Movements" 
+                    value={totalTransactions} 
+                    icon={Activity} 
+                    description="Records in ledger"
+                />
+            </div>
+            <div>
+                <h2 className="text-2xl font-bold mb-4">
+                    <StockOnHandTable products={products}/>
+                </h2>
+            </div>
         </div>
     );
 }
