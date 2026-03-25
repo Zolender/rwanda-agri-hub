@@ -175,7 +175,17 @@ export default function ImportPage() {
     }
         
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) setFile(e.target.files[0]);
+        if (e.target.files){
+            const selectedFile = e.target.files[0];
+
+            const maxSize = 5 * 1024 * 1024
+
+            if(selectedFile.size> maxSize){
+                const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2)
+                toast.warning(`File size is ${sizeMB}MB. Large files may take longer to process.`, {duration: 4000})
+            }
+            setFile(selectedFile);
+        }
     };
 
 
