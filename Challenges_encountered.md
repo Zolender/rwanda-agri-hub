@@ -159,3 +159,14 @@ Solution:
 * Ran `npx prisma generate` to regenerate the Prisma client with the updated schema.
 * Restarted the development server to ensure the new Prisma client was loaded.
 * This highlighted the importance of keeping all server actions synchronized when schema fields change from optional to required.
+## 17. Error Boundary Implementation (Next.js 15)
+
+* Challenge: Needed to handle errors gracefully without white screens
+* Solution: Created `error.tsx` file in route group for automatic error catching
+* Key Learning: Next.js 15 has built-in error boundaries at the route level
+
+## 18. Loading States with Skeletons
+
+* Challenge: Tables showed blank screen while data loaded
+* Solution: Created `loading.tsx` with animated skeleton screens
+* Key Learning: loading.tsx automatically wraps async Server Components in Suspense
