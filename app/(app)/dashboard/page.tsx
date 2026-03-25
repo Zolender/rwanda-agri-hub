@@ -4,38 +4,34 @@ import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react"
 import StockOnHandTable from "../components/dashboard/StockOnHandTable";
 
 export default async function DashboardPage() {
-    const [totalProducts, totalTransactions, inventoryData] = await Promise.all([
+    const [totalProducts, totalTransactions, products] = await Promise.all([
         prisma.product.count(),
         prisma.transaction.count(),
-        prisma.product.aggregate({
-        _sum: {
-            unitCostRwf: true,
-            quantity: true // Make sure you added 'quantity' to the schema!
-        }
+        prisma.product.findMany({
+            select: {
+                id: true,
+                categoryId: true,
+                unitOfMeasure: true,
+                unitCostRwf: true,
+                sellingPriceRwf: true,
+                quantity: true,
+                reorderPointUnits: true
+            },
+            orderBy: {
+                id: 'asc'
+            }
         })
 ]);
 
 // const totalValue = inventoryData._sum.unitCostRwf || 0;
 
-const products = await prisma.product.findMany({
-    select: {
-        quantity: true,
-        unitCostRwf: true
-    }
-})
+
 
 const totalValue = products.reduce( (sum, p) => sum + (p.quantity * p.unitCostRwf), 0)
 
 
 
-const allProducts = await prisma.product.findMany({
-    select: {
-        quantity: true,
-        reorderPointUnits: true
-    }
-})
-
-const lowStockItems = allProducts.filter( p => p.quantity<= p.reorderPointUnits).length
+const lowStockItems = products.filter( p => p.quantity<= p.reorderPointUnits).length
 
     
 
