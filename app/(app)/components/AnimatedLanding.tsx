@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { TrendingUp, Shield, Zap, BarChart3, FileUp, CheckCircle2, ArrowRight, ArrowUpRight, Leaf, Globe, ChevronRight, Package } from 'lucide-react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { TrendingUp, Shield, Zap, BarChart3, FileUp, CheckCircle2, ArrowRight, ArrowUpRight, Leaf, Globe, ChevronRight, Package, Star, Play, X, Moon, Sun } from 'lucide-react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 
 type AnimatedLandingProps = {
@@ -20,16 +20,16 @@ const TICKER_ITEMS = [
     "Analytics Dashboard",
 ];
 
-function Ticker() {
+function Ticker({ isDark }: { isDark: boolean }) {
     return (
-        <div className="overflow-hidden border-b border-stone-200 bg-stone-100 py-2.5">
+        <div className={`overflow-hidden border-b ${isDark ? 'border-stone-800 bg-stone-900' : 'border-stone-200 bg-stone-100'} py-2.5`}>
             <motion.div
                 className="flex gap-12 whitespace-nowrap"
                 animate={{ x: ['0%', '-50%'] }}
                 transition={{ duration: 32, repeat: Infinity, ease: 'linear' }}
             >
                 {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
-                    <span key={i} className="flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-widest text-stone-400">
+                    <span key={i} className={`flex items-center gap-2.5 text-[11px] font-mono uppercase tracking-widest ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
                         <span className="w-1 h-1 rounded-full bg-emerald-600 shrink-0" />
                         {item}
                     </span>
@@ -71,7 +71,7 @@ function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
 function TerrainBg() {
     return (
         <svg
-            className="absolute inset-0 w-full h-full opacity-[0.055] pointer-events-none"
+            className="absolute inset-0 w-full h-full opacity-[0.04] pointer-events-none"
             viewBox="0 0 1200 600"
             preserveAspectRatio="xMidYMid slice"
             xmlns="http://www.w3.org/2000/svg"
@@ -103,10 +103,26 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
     const heroY = useTransform(scrollYProgress, [0, 1], ['0%', '25%']);
     const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
     const [hoveredFeature, setHoveredFeature] = useState<number | null>(null);
+    const [isDark, setIsDark] = useState(false);
+
+    // Load dark mode preference from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem('darkMode');
+        if (saved !== null) {
+            setIsDark(saved === 'true');
+        }
+    }, []);
+
+    // Save dark mode preference
+    const toggleDarkMode = () => {
+        const newMode = !isDark;
+        setIsDark(newMode);
+        localStorage.setItem('darkMode', String(newMode));
+    };
 
     return (
         <div
-            className="min-h-screen bg-stone-50 text-stone-800 overflow-x-hidden"
+            className={`min-h-screen ${isDark ? 'bg-stone-950 text-stone-100' : 'bg-[#fafaf9] text-stone-800'} overflow-x-hidden transition-colors duration-300`}
             style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
         >
             {/* ─── NAV ─────────────────────────────────────────── */}
@@ -114,27 +130,39 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                 initial={{ opacity: 0, y: -16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="sticky top-0 z-50 border-b border-stone-200 bg-stone-50/90 backdrop-blur-md"
+                className={`sticky top-0 z-50 border-b ${isDark ? 'border-stone-800 bg-stone-950/90' : 'border-stone-200 bg-[#fafaf9]/90'} backdrop-blur-md`}
             >
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 bg-emerald-700 rounded-md grid place-items-center shrink-0">
+                        <div className="w-7 h-7 bg-emerald-600 rounded-md grid place-items-center shrink-0">
                             <Leaf className="w-4 h-4 text-white" strokeWidth={2.5} />
                         </div>
-                        <span className="text-sm font-semibold text-stone-800 tracking-tight">
-                            Rwanda <span className="text-emerald-700">AgriHub</span>
+                        <span className={`text-sm font-semibold ${isDark ? 'text-stone-100' : 'text-stone-800'} tracking-tight`}>
+                            Rwanda <span className="text-emerald-600">AgriHub</span>
                         </span>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <span className="hidden md:block text-xs text-stone-400">
+                        <span className={`hidden md:block text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
                             Inventory for agri-distributors
                         </span>
+                        
+                        {/* Dark Mode Toggle */}
+                        <motion.button
+                            onClick={toggleDarkMode}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className={`p-2 rounded-lg ${isDark ? 'bg-stone-900 text-stone-400 hover:text-stone-200' : 'bg-stone-100 text-stone-600 hover:text-stone-800'} transition-colors`}
+                            aria-label="Toggle dark mode"
+                        >
+                            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                        </motion.button>
+
                         {!session ? (
                             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                 <Link
                                     href="/login"
-                                    className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 transition-colors flex items-center gap-1.5"
+                                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
                                 >
                                     Sign In <ArrowUpRight className="w-3.5 h-3.5" />
                                 </Link>
@@ -143,7 +171,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                 <Link
                                     href="/dashboard"
-                                    className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-semibold hover:bg-emerald-800 transition-colors flex items-center gap-1.5"
+                                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-1.5"
                                 >
                                     Dashboard <ArrowRight className="w-3.5 h-3.5" />
                                 </Link>
@@ -154,16 +182,16 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
             </motion.nav>
 
             {/* ─── TICKER ──────────────────────────────────────── */}
-            <Ticker />
+            <Ticker isDark={isDark} />
 
             {/* ─── HERO ────────────────────────────────────────── */}
             <motion.section
                 ref={heroRef}
                 style={{ y: heroY, opacity: heroOpacity }}
-                className="relative min-h-[88vh] flex flex-col justify-center overflow-hidden bg-stone-50"
+                className={`relative min-h-[88vh] flex flex-col justify-center overflow-hidden ${isDark ? 'bg-stone-950' : 'bg-[#fafaf9]'}`}
             >
                 <TerrainBg />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full bg-emerald-100/70 blur-[100px] pointer-events-none" />
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full ${isDark ? 'bg-emerald-950/40' : 'bg-emerald-100/60'} blur-[120px] pointer-events-none`} />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
                     <div className="grid lg:grid-cols-[1fr_auto] gap-16 items-end">
@@ -176,8 +204,8 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                 transition={{ delay: 0.1, duration: 0.5 }}
                                 className="flex items-center gap-2 mb-8"
                             >
-                                <Globe className="w-3.5 h-3.5 text-emerald-700" />
-                                <span className="text-xs font-mono uppercase tracking-widest text-emerald-700">
+                                <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                                <span className="text-xs font-mono uppercase tracking-widest text-emerald-600">
                                     Rwanda · Agri-Input Distribution
                                 </span>
                             </motion.div>
@@ -189,7 +217,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                             initial={{ y: '110%' }}
                                             animate={{ y: '0%' }}
                                             transition={{ delay: 0.2 + wi * 0.1, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-                                            className={`text-7xl lg:text-9xl font-black leading-none tracking-tighter ${wi === 2 ? 'text-emerald-700' : 'text-stone-800'}`}
+                                            className={`text-7xl lg:text-9xl font-black leading-none tracking-tighter ${wi === 2 ? 'text-emerald-600' : isDark ? 'text-stone-100' : 'text-stone-900'}`}
                                             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                         >
                                             {word}
@@ -202,7 +230,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                 initial={{ opacity: 0, y: 14 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.6, duration: 0.5 }}
-                                className="text-base text-stone-500 max-w-md leading-relaxed mb-10"
+                                className={`text-base ${isDark ? 'text-stone-400' : 'text-stone-600'} max-w-md leading-relaxed mb-10`}
                             >
                                 Modern inventory management for agri-input distributors across Rwanda.
                                 Track stock, manage transactions, and act on data — not guesses.
@@ -219,7 +247,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                         <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                             <Link
                                                 href="/login"
-                                                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-700 text-white rounded-xl font-semibold text-sm hover:bg-emerald-800 transition-colors shadow-sm shadow-emerald-200"
+                                                className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20"
                                             >
                                                 Get Started <ArrowRight className="w-4 h-4" />
                                             </Link>
@@ -227,8 +255,9 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                         <motion.button
                                             whileHover={{ scale: 1.03 }}
                                             whileTap={{ scale: 0.97 }}
-                                            className="inline-flex items-center gap-2 px-6 py-3 border border-stone-300 text-stone-600 rounded-xl font-semibold text-sm hover:border-stone-400 hover:text-stone-800 transition-colors bg-white"
+                                            className={`inline-flex items-center gap-2 px-6 py-3 border ${isDark ? 'border-stone-700 text-stone-300 hover:border-stone-600 hover:text-stone-200 bg-stone-900' : 'border-stone-300 text-stone-700 hover:border-stone-400 hover:text-stone-900 bg-white'} rounded-xl font-semibold text-sm transition-colors`}
                                         >
+                                            <Play className="w-4 h-4" />
                                             Watch Demo
                                         </motion.button>
                                     </>
@@ -236,7 +265,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                     <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                         <Link
                                             href="/dashboard"
-                                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-700 text-white rounded-xl font-semibold text-sm hover:bg-emerald-800 transition-colors"
+                                            className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors"
                                         >
                                             Open Dashboard <ArrowRight className="w-4 h-4" />
                                         </Link>
@@ -245,7 +274,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             </motion.div>
                         </div>
 
-                        {/* Right — floating stat cards */}
+                        {/* Right — floating stat cards (Desktop) */}
                         <motion.div
                             initial={{ opacity: 0, x: 32 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -255,18 +284,18 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             <motion.div
                                 animate={{ y: [0, -7, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                                className="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm"
+                                className={`${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'} border rounded-2xl p-5 shadow-xl`}
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <span className="text-[11px] text-stone-400 uppercase tracking-wider">Total SKUs</span>
-                                    <div className="w-6 h-6 rounded-full bg-emerald-100 grid place-items-center">
-                                        <Package className="w-3 h-3 text-emerald-700" />
+                                    <span className={`text-[11px] ${isDark ? 'text-stone-500' : 'text-stone-400'} uppercase tracking-wider`}>Total SKUs</span>
+                                    <div className="w-6 h-6 rounded-full bg-emerald-600/10 grid place-items-center">
+                                        <Package className="w-3 h-3 text-emerald-600" />
                                     </div>
                                 </div>
-                                <div className="text-3xl font-black text-stone-800 tracking-tighter">
+                                <div className={`text-3xl font-black ${isDark ? 'text-stone-100' : 'text-stone-900'} tracking-tighter`}>
                                     <Counter target={2847} />
                                 </div>
-                                <div className="mt-2 flex items-center gap-1 text-xs text-emerald-700">
+                                <div className="mt-2 flex items-center gap-1 text-xs text-emerald-600">
                                     <TrendingUp className="w-3 h-3" />
                                     +12% this month
                                 </div>
@@ -275,27 +304,27 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             <motion.div
                                 animate={{ y: [0, -5, 0] }}
                                 transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
-                                className="bg-emerald-700 rounded-2xl p-5"
+                                className="bg-emerald-600 rounded-2xl p-5 shadow-xl shadow-emerald-600/20"
                             >
                                 <div className="flex items-start justify-between mb-3">
-                                    <span className="text-[11px] text-emerald-200 uppercase tracking-wider font-medium">Stock Value</span>
-                                    <Zap className="w-4 h-4 text-emerald-200" />
+                                    <span className="text-[11px] text-emerald-100 uppercase tracking-wider font-medium">Stock Value</span>
+                                    <Zap className="w-4 h-4 text-emerald-100" />
                                 </div>
                                 <div className="text-2xl font-black text-white tracking-tight">RWF 48.2M</div>
-                                <div className="mt-2 text-xs text-emerald-300">Across 3 regions</div>
+                                <div className="mt-2 text-xs text-emerald-200">Across 3 regions</div>
                             </motion.div>
 
                             <motion.div
                                 animate={{ y: [0, -8, 0] }}
                                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
-                                className="bg-white border border-stone-200 rounded-2xl p-5 shadow-sm"
+                                className={`${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'} border rounded-2xl p-5 shadow-xl`}
                             >
-                                <div className="text-[11px] text-stone-400 uppercase tracking-wider mb-3">Low Stock Alerts</div>
+                                <div className={`text-[11px] ${isDark ? 'text-stone-500' : 'text-stone-400'} uppercase tracking-wider mb-3`}>Low Stock Alerts</div>
                                 <div className="space-y-2">
                                     {['NPK 50kg', 'DAP Fertilizer', 'Urea 25kg'].map((item, i) => (
                                         <div key={i} className="flex items-center justify-between">
-                                            <span className="text-xs text-stone-600">{item}</span>
-                                            <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">Low</span>
+                                            <span className={`text-xs ${isDark ? 'text-stone-300' : 'text-stone-700'}`}>{item}</span>
+                                            <span className="text-[10px] bg-amber-500/10 text-amber-600 border border-amber-500/20 px-2 py-0.5 rounded-full">Low</span>
                                         </div>
                                     ))}
                                 </div>
@@ -303,12 +332,31 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                         </motion.div>
                     </div>
 
+                    {/* Mobile Floating Cards (NEW!) */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.6 }}
+                        className="lg:hidden grid grid-cols-2 gap-3 mt-12"
+                    >
+                        <div className={`${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'} border rounded-xl p-4 shadow-lg`}>
+                            <div className={`text-2xl font-black ${isDark ? 'text-stone-100' : 'text-stone-900'} tracking-tight`}>
+                                <Counter target={2847} />
+                            </div>
+                            <div className={`text-[10px] ${isDark ? 'text-stone-500' : 'text-stone-400'} uppercase tracking-wider mt-1`}>Products</div>
+                        </div>
+                        <div className="bg-emerald-600 rounded-xl p-4 shadow-lg shadow-emerald-600/20">
+                            <div className="text-xl font-black text-white tracking-tight">48.2M</div>
+                            <div className="text-[10px] text-emerald-200 uppercase tracking-wider mt-1">RWF Value</div>
+                        </div>
+                    </motion.div>
+
                     {/* Trust strip */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.9, duration: 0.6 }}
-                        className="border-t border-stone-200 pt-8 pb-16 flex flex-wrap items-center gap-8 text-xs text-stone-400"
+                        className={`border-t ${isDark ? 'border-stone-800' : 'border-stone-200'} pt-8 pb-16 flex flex-wrap items-center gap-8 text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'}`}
                     >
                         {['No setup fees', 'Works offline-ready', '3 user roles', 'Export anytime'].map((item, i) => (
                             <span key={i} className="flex items-center gap-2">
@@ -321,7 +369,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
             </motion.section>
 
             {/* ─── STATS ───────────────────────────────────────── */}
-            <section className="border-y border-stone-200 bg-white">
+            <section className={`border-y ${isDark ? 'border-stone-800 bg-stone-900' : 'border-stone-200 bg-white'}`}>
                 <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
                     {[
                         { n: 2000, suf: '+',   label: 'Products tracked' },
@@ -336,10 +384,10 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.07, duration: 0.45 }}
                         >
-                            <div className="text-4xl font-black text-emerald-700 tracking-tight tabular-nums">
+                            <div className="text-4xl font-black text-emerald-600 tracking-tight tabular-nums">
                                 <Counter target={s.n} suffix={s.suf} />
                             </div>
-                            <div className="text-xs text-stone-400 mt-1 uppercase tracking-widest">{s.label}</div>
+                            <div className={`text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'} mt-1 uppercase tracking-widest`}>{s.label}</div>
                         </motion.div>
                     ))}
                 </div>
@@ -355,20 +403,20 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                     className="mb-14 flex items-end justify-between flex-wrap gap-4"
                 >
                     <div>
-                        <p className="text-xs font-mono uppercase tracking-widest text-emerald-700 mb-3">Platform features</p>
+                        <p className="text-xs font-mono uppercase tracking-widest text-emerald-600 mb-3">Platform features</p>
                         <h2
-                            className="text-4xl lg:text-5xl font-black text-stone-800 tracking-tight leading-tight max-w-lg"
+                            className={`text-4xl lg:text-5xl font-black ${isDark ? 'text-stone-100' : 'text-stone-900'} tracking-tight leading-tight max-w-lg`}
                             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         >
                             Built for the way distributors actually work.
                         </h2>
                     </div>
-                    <p className="text-sm text-stone-400 max-w-xs leading-relaxed">
+                    <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'} max-w-xs leading-relaxed`}>
                         Every feature was designed around real workflows in Rwanda's agricultural supply chain.
                     </p>
                 </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-200 border border-stone-200 rounded-2xl overflow-hidden">
+                <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px ${isDark ? 'bg-stone-800 border-stone-800' : 'bg-stone-200 border-stone-200'} border rounded-2xl overflow-hidden`}>
                     {features.map((f, i) => (
                         <motion.div
                             key={i}
@@ -378,32 +426,32 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             transition={{ delay: i * 0.06, duration: 0.4 }}
                             onHoverStart={() => setHoveredFeature(i)}
                             onHoverEnd={() => setHoveredFeature(null)}
-                            className="relative bg-white p-8 cursor-default transition-colors duration-200 hover:bg-stone-50"
+                            className={`relative ${isDark ? 'bg-stone-900 hover:bg-stone-850' : 'bg-white hover:bg-stone-50'} p-8 cursor-default transition-colors duration-200`}
                         >
                             <motion.div
-                                className="absolute top-0 left-0 h-0.5 bg-emerald-700"
+                                className="absolute top-0 left-0 h-0.5 bg-emerald-600"
                                 initial={{ width: 0 }}
                                 animate={{ width: hoveredFeature === i ? '100%' : '0%' }}
                                 transition={{ duration: 0.25 }}
                             />
 
                             <div className="flex items-start justify-between mb-5">
-                                <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 grid place-items-center">
-                                    <f.icon className="w-4 h-4 text-emerald-700" />
+                                <div className="w-9 h-9 rounded-lg bg-emerald-600/10 border border-emerald-600/20 grid place-items-center">
+                                    <f.icon className="w-4 h-4 text-emerald-600" />
                                 </div>
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-stone-400 border border-stone-200 px-2 py-1 rounded-full">
+                                <span className={`text-[10px] font-mono uppercase tracking-widest ${isDark ? 'text-stone-500 border-stone-700' : 'text-stone-400 border-stone-200'} border px-2 py-1 rounded-full`}>
                                     {f.tag}
                                 </span>
                             </div>
 
-                            <h3 className="text-sm font-bold text-stone-800 mb-2">{f.title}</h3>
-                            <p className="text-sm text-stone-400 leading-relaxed">{f.description}</p>
+                            <h3 className={`text-sm font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'} mb-2`}>{f.title}</h3>
+                            <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'} leading-relaxed`}>{f.description}</p>
 
                             <motion.div
                                 initial={{ opacity: 0, x: -4 }}
                                 animate={{ opacity: hoveredFeature === i ? 1 : 0, x: hoveredFeature === i ? 0 : -4 }}
                                 transition={{ duration: 0.2 }}
-                                className="mt-5 flex items-center gap-1 text-xs text-emerald-700 font-medium"
+                                className="mt-5 flex items-center gap-1 text-xs text-emerald-600 font-medium"
                             >
                                 Learn more <ChevronRight className="w-3 h-3" />
                             </motion.div>
@@ -413,13 +461,13 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
             </section>
 
             {/* ─── HOW IT WORKS ────────────────────────────────── */}
-            <section className="border-y border-stone-200 bg-white py-24">
+            <section className={`border-y ${isDark ? 'border-stone-800 bg-stone-900' : 'border-stone-200 bg-white'} py-24`}>
                 <div className="max-w-7xl mx-auto px-6">
                     <motion.p
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
-                        className="text-xs font-mono uppercase tracking-widest text-emerald-700 mb-12"
+                        className="text-xs font-mono uppercase tracking-widest text-emerald-600 mb-12"
                     >
                         How it works
                     </motion.p>
@@ -439,15 +487,15 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                 className="relative"
                             >
                                 <div
-                                    className="text-5xl font-black text-stone-100 mb-4 tabular-nums tracking-tighter select-none"
+                                    className={`text-5xl font-black ${isDark ? 'text-stone-800' : 'text-stone-100'} mb-4 tabular-nums tracking-tighter select-none`}
                                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                                 >
                                     {step.n}
                                 </div>
-                                <h3 className="text-base font-bold text-stone-800 mb-2">{step.title}</h3>
-                                <p className="text-sm text-stone-400 leading-relaxed">{step.body}</p>
+                                <h3 className={`text-base font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'} mb-2`}>{step.title}</h3>
+                                <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'} leading-relaxed`}>{step.body}</p>
                                 {i < 2 && (
-                                    <div className="hidden md:block absolute top-8 right-0 translate-x-1/2 text-stone-300">
+                                    <div className={`hidden md:block absolute top-8 right-0 translate-x-1/2 ${isDark ? 'text-stone-700' : 'text-stone-300'}`}>
                                         <ArrowRight className="w-5 h-5" />
                                     </div>
                                 )}
@@ -464,7 +512,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative bg-emerald-700 rounded-3xl p-12 lg:p-20 overflow-hidden"
+                    className="relative bg-emerald-600 rounded-3xl p-12 lg:p-20 overflow-hidden shadow-2xl shadow-emerald-600/20"
                 >
                     <svg className="absolute inset-0 w-full h-full opacity-10 pointer-events-none" viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice">
                         {[0, 40, 80, 120, 160].map((o, i) => (
@@ -476,14 +524,14 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                     </svg>
 
                     <div className="relative z-10 max-w-2xl">
-                        <p className="text-xs font-mono uppercase tracking-widest text-emerald-300 mb-4">Ready to begin</p>
+                        <p className="text-xs font-mono uppercase tracking-widest text-emerald-200 mb-4">Ready to begin</p>
                         <h2
                             className="text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight mb-5"
                             style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                         >
                             Optimize your supply chain today.
                         </h2>
-                        <p className="text-sm text-emerald-200 mb-10 max-w-md leading-relaxed">
+                        <p className="text-sm text-emerald-100 mb-10 max-w-md leading-relaxed">
                             Join agricultural distributors across Rwanda who use AgriHub to keep inventory accurate, current, and accessible.
                         </p>
 
@@ -492,7 +540,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                 <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                     <Link
                                         href="/login"
-                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-800 rounded-xl font-bold text-sm hover:bg-stone-50 transition-colors"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-xl font-bold text-sm hover:bg-stone-50 transition-colors shadow-lg"
                                     >
                                         Get Started Now <ArrowRight className="w-4 h-4" />
                                     </Link>
@@ -503,7 +551,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                                     rel="noopener noreferrer"
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.97 }}
-                                    className="inline-flex items-center gap-2 px-6 py-3 border border-emerald-500 text-emerald-100 rounded-xl font-semibold text-sm hover:bg-emerald-600 transition-colors"
+                                    className="inline-flex items-center gap-2 px-6 py-3 border border-emerald-400 text-white rounded-xl font-semibold text-sm hover:bg-emerald-500 transition-colors"
                                 >
                                     View on GitHub <ArrowUpRight className="w-4 h-4" />
                                 </motion.a>
@@ -512,7 +560,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                                 <Link
                                     href="/dashboard"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-800 rounded-xl font-bold text-sm hover:bg-stone-50 transition-colors"
+                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-emerald-700 rounded-xl font-bold text-sm hover:bg-stone-50 transition-colors"
                                 >
                                     Open Dashboard <ArrowRight className="w-4 h-4" />
                                 </Link>
@@ -523,29 +571,29 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
             </section>
 
             {/* ─── FOOTER ──────────────────────────────────────── */}
-            <footer className="border-t border-stone-200 bg-white py-10">
+            <footer className={`border-t ${isDark ? 'border-stone-800 bg-stone-900' : 'border-stone-200 bg-white'} py-10`}>
                 <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-6 h-6 bg-emerald-700 rounded-md grid place-items-center shrink-0">
+                        <div className="w-6 h-6 bg-emerald-600 rounded-md grid place-items-center shrink-0">
                             <Leaf className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
                         </div>
-                        <span className="text-sm font-semibold text-stone-700">
-                            Rwanda <span className="text-emerald-700">AgriHub</span>
+                        <span className={`text-sm font-semibold ${isDark ? 'text-stone-300' : 'text-stone-700'}`}>
+                            Rwanda <span className="text-emerald-600">AgriHub</span>
                         </span>
                     </div>
-                    <div className="flex items-center gap-5 text-xs text-stone-400">
+                    <div className={`flex items-center gap-5 text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
                         <span>© 2026 Rwanda AgriHub</span>
-                        <span className="w-px h-3 bg-stone-200" />
+                        <span className={`w-px h-3 ${isDark ? 'bg-stone-700' : 'bg-stone-200'}`} />
                         <motion.a
                             href="https://github.com/Zolender/rwanda-agri-hub"
                             target="_blank"
                             rel="noopener noreferrer"
-                            whileHover={{ color: '#15803d' }}
-                            className="hover:text-emerald-700 transition-colors"
+                            whileHover={{ color: '#059669' }}
+                            className="hover:text-emerald-600 transition-colors"
                         >
                             GitHub
                         </motion.a>
-                        <span className="w-px h-3 bg-stone-200" />
+                        <span className={`w-px h-3 ${isDark ? 'bg-stone-700' : 'bg-stone-200'}`} />
                         <span>Built by Zolender</span>
                     </div>
                 </div>
