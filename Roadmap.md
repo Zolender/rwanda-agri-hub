@@ -86,12 +86,13 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add estimated time display
 
 ### 1.5 Dashboard
-- [ ] Fix KPI cards (total products, low stock, recent imports)
-- [ ] Add stock-on-hand table with sorting
-- [ ] Add search/filter functionality
-- [ ] Add "low stock alerts" section
-- [ ] Add last import timestamp
+- [x] Fix KPI cards (total products, low stock, recent imports)
+- [x] Add stock-on-hand table with sorting
+- [x] Add search/filter functionality
+- [x] Add "low stock alerts" section
+- [x] Add last import timestamp
 - [ ] Add role-based dashboard views
+- [ ] Add "low stock alerts" section
 
 ### 1.6 Transactions Page
 - [ ] Implement date range filter
