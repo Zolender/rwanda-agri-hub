@@ -2,9 +2,10 @@ import prisma from "@/app/lib/db";
 import StatCard from "@/app/(app)/components/dashboard/StatCard";
 import { Package, AlertTriangle, BadgeDollarSign, Activity } from "lucide-react";
 import StockOnHandTable from "../components/dashboard/StockOnHandTable";
+import {formatDistanceToNow} from "date-fns";
 
 export default async function DashboardPage() {
-    const [totalProducts, totalTransactions, products] = await Promise.all([
+    const [totalProducts, totalTransactions, products, latestTransaction] = await Promise.all([
         prisma.product.count(),
         prisma.transaction.count(),
         prisma.product.findMany({
@@ -20,6 +21,14 @@ export default async function DashboardPage() {
             orderBy: {
                 id: 'asc'
             }
+        }),
+        prisma.transaction.findFirst({
+            orderBy: {
+                createdAt : "desc"
+            },
+            select: {
+                createdAt : true
+            }
         })
 ]);
 
@@ -33,10 +42,31 @@ const totalValue = products.reduce( (sum, p) => sum + (p.quantity * p.unitCostRw
 
 const lowStockItems = products.filter( p => p.quantity<= p.reorderPointUnits).length
 
-    
+const lastUpdated = latestTransaction ? formatDistanceToNow(latestTransaction.createdAt, { addSuffix: true}) : "Never";
 
     return (
         <div className="space-y-6">
+            
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+                    <p className="text-sm to-slate-500 mt-1">
+                        Last Updated: <span className="font-medium text-slate-700">{lastUpdated}</span>
+                    </p>
+                </div>
+                    <button
+                        onClick={() => window.location.reload()}
+                        className="px-4 py-2 text-sm bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                        Refresh Data
+                    </button>
+            
+            </div>
+
+            
+
+
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* 1. Total Unique Products */}
                 <StatCard 
