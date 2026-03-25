@@ -50,7 +50,7 @@ export default function Error({
                         <summary className="cursor-pointer text-sm text-slate-500 hover:text-slate-700">
                             Technical Details
                         </summary>
-                        <pre className="mt-2 p-3 bg-slate-100 rounded text-xs overflow-auto">
+                        <pre className="mt-2 p-3 bg-slate-100 rounded text-xs overflow-auto text-slate-600">
                             {error.stack}
                         </pre>
                     </details>
