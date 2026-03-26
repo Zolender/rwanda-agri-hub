@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePathname } from 'next/navigation';
 import SidebarNav from '../SideBarNav';
 import { Leaf, Moon, Sun, Menu, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function DashboardShell({ children, session }: { children: React.ReactNode; session: any }) {
     const [isDark, setIsDark] = useState(false);
@@ -47,22 +47,13 @@ export default function DashboardShell({ children, session }: { children: React.
                 )}
             </AnimatePresence>
 
-            {/* Sidebar - Desktop & Mobile */}
-            <motion.aside
-                initial={false}
-                animate={{ 
-                    x: isSidebarOpen ? 0 : -300
-                }}
-                transition={{ 
-                    type: "spring",
-                    damping: 30,
-                    stiffness: 300
-                }}
+            {/* Sidebar - Desktop (always visible) & Mobile (toggle) */}
+            <aside
                 className={`
-                    fixed lg:relative z-50 h-screen w-64 
+                    w-64 h-screen shrink-0
                     ${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'} 
-                    border-r flex flex-col transition-colors
-                    lg:translate-x-0
+                    border-r flex-col transition-colors
+                    hidden lg:flex
                 `}
             >
                 {/* Logo Header with Dark Mode Toggle */}
@@ -85,12 +76,12 @@ export default function DashboardShell({ children, session }: { children: React.
                             </h2>
                         </div>
 
-                        {/* Dark Mode Toggle - Desktop */}
+                        {/* Dark Mode Toggle */}
                         <motion.button
                             onClick={toggleDarkMode}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            className={`hidden lg:flex p-2 rounded-lg transition-colors ${
+                            className={`p-2 rounded-lg transition-colors ${
                                 isDark 
                                     ? 'bg-stone-800 text-amber-400 hover:bg-stone-700' 
                                     : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
@@ -105,16 +96,6 @@ export default function DashboardShell({ children, session }: { children: React.
                                 {isDark ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
                             </motion.div>
                         </motion.button>
-
-                        {/* Close button - Mobile only */}
-                        <button
-                            onClick={() => setIsSidebarOpen(false)}
-                            className={`lg:hidden p-2 rounded-lg transition-colors ${
-                                isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
-                            }`}
-                        >
-                            <X className={`w-5 h-5 ${isDark ? 'text-stone-400' : 'text-stone-600'}`} />
-                        </button>
                     </div>
                 </div>
 
@@ -122,7 +103,58 @@ export default function DashboardShell({ children, session }: { children: React.
                 <div className="flex-1 overflow-y-auto">
                     <SidebarNav isDark={isDark} />
                 </div>
-            </motion.aside>
+            </aside>
+
+            {/* Mobile Sidebar */}
+            <AnimatePresence>
+                {isSidebarOpen && (
+                    <motion.aside
+                        initial={{ x: -300 }}
+                        animate={{ x: 0 }}
+                        exit={{ x: -300 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className={`
+                            fixed z-50 h-screen w-64 
+                            ${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'} 
+                            border-r flex flex-col transition-colors
+                            lg:hidden
+                        `}
+                    >
+                        {/* Logo Header */}
+                        <div className={`p-6 border-b ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
+                            <div className="flex items-center justify-between gap-3">
+                                {/* Logo */}
+                                <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                                    <div className="w-9 h-9 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl grid place-items-center shrink-0 shadow-lg shadow-emerald-600/20">
+                                        <Leaf className="w-5 h-5 text-white" strokeWidth={2.5} />
+                                    </div>
+                                    <h2 
+                                        className={`text-lg font-black ${isDark ? 'text-stone-100' : 'text-stone-900'} tracking-tight truncate`}
+                                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                                    >
+                                        Agri<span className="text-emerald-600">Hub</span>
+                                    </h2>
+                                </div>
+
+                                {/* Close button */}
+                                <button
+                                    onClick={() => setIsSidebarOpen(false)}
+                                    className={`p-2 rounded-lg transition-colors ${
+                                        isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-100'
+                                    }`}
+                                >
+                                    <X className={`w-5 h-5 ${isDark ? 'text-stone-400' : 'text-stone-600'}`} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Navigation */}
+                        <div className="flex-1 overflow-y-auto">
+                            <SidebarNav isDark={isDark} />
+                        </div>
+                    </motion.aside>
+                )}
+            </AnimatePresence>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -167,10 +199,9 @@ export default function DashboardShell({ children, session }: { children: React.
                 {/* Page Content */}
                 <main className="flex-1 overflow-y-auto p-4 lg:p-8">
                     <motion.div
-                        key={pathname} // Re-animate on route change
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.4, delay: 0.1 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
                     >
                         {children}
                     </motion.div>
