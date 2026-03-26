@@ -19,12 +19,22 @@ type Transaction = {
     };
 };
 
+type PageLinks = {
+    previous: string | null;
+    next: string | null;
+    pages: Array<{
+        number: number;
+        url: string;
+        isActive: boolean;
+    }>;
+};
+
 type TransactionsTableProps = {
     transactions: Transaction[];
     page: number;
     totalPages: number;
     totalCount: number;
-    buildPaginationLink: (page: number) => string;
+    pageLinks: PageLinks;
 };
 
 export default function TransactionsTable({
@@ -32,7 +42,7 @@ export default function TransactionsTable({
     page,
     totalPages,
     totalCount,
-    buildPaginationLink
+    pageLinks
 }: TransactionsTableProps) {
     
     const getMovementTypeColor = (type: string) => {
@@ -148,9 +158,9 @@ export default function TransactionsTable({
                     
                     <div className="flex items-center gap-2">
                         {/* Previous Button */}
-                        {page > 1 ? (
+                        {pageLinks.previous ? (
                             <Link
-                                href={buildPaginationLink(page - 1)}
+                                href={pageLinks.previous}
                                 className="flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 rounded-lg hover:bg-white hover:border-stone-400 transition-all font-medium text-sm"
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -165,40 +175,25 @@ export default function TransactionsTable({
 
                         {/* Page Numbers */}
                         <div className="hidden sm:flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                let pageNum;
-                                if (totalPages <= 5) {
-                                    pageNum = i + 1;
-                                } else if (page <= 3) {
-                                    pageNum = i + 1;
-                                } else if (page >= totalPages - 2) {
-                                    pageNum = totalPages - 4 + i;
-                                } else {
-                                    pageNum = page - 2 + i;
-                                }
-
-                                const isActive = pageNum === page;
-
-                                return (
-                                    <Link
-                                        key={pageNum}
-                                        href={buildPaginationLink(pageNum)}
-                                        className={`w-10 h-10 flex items-center justify-center rounded-lg font-semibold text-sm transition-all ${
-                                            isActive
-                                                ? 'bg-emerald-600 text-white shadow-sm'
-                                                : 'text-stone-600 hover:bg-stone-100'
-                                        }`}
-                                    >
-                                        {pageNum}
-                                    </Link>
-                                );
-                            })}
+                            {pageLinks.pages.map((pageLink) => (
+                                <Link
+                                    key={pageLink.number}
+                                    href={pageLink.url}
+                                    className={`w-10 h-10 flex items-center justify-center rounded-lg font-semibold text-sm transition-all ${
+                                        pageLink.isActive
+                                            ? 'bg-emerald-600 text-white shadow-sm'
+                                            : 'text-stone-600 hover:bg-stone-100'
+                                    }`}
+                                >
+                                    {pageLink.number}
+                                </Link>
+                            ))}
                         </div>
 
                         {/* Next Button */}
-                        {page < totalPages ? (
+                        {pageLinks.next ? (
                             <Link
-                                href={buildPaginationLink(page + 1)}
+                                href={pageLinks.next}
                                 className="flex items-center gap-2 px-4 py-2 border border-stone-300 text-stone-700 rounded-lg hover:bg-white hover:border-stone-400 transition-all font-medium text-sm"
                             >
                                 Next

@@ -1,8 +1,7 @@
 import prisma from "@/app/lib/db";
 import { formatDistanceToNow, format } from "date-fns";
 import FiltersBar from "@/app/(app)/components/transactions/FiltersBar";
-import Link from "next/link";
-import TransactionsTable from "../components/transactions/TransactionsTable";
+import TransactionsTable from "@/app/(app)/components/transactions/TransactionsTable";
 
 type SearchParams = {
     page?: string;
@@ -81,7 +80,7 @@ export default async function TransactionsPage({
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
-    // Helper to build pagination links
+    // Build all pagination links ahead of time
     const buildPaginationLink = (newPage: number) => {
         const urlParams = new URLSearchParams();
         if (params.movementType) urlParams.set('movementType', params.movementType);
@@ -91,6 +90,29 @@ export default async function TransactionsPage({
         if (params.to) urlParams.set('to', params.to);
         urlParams.set('page', newPage.toString());
         return `/transactions?${urlParams.toString()}`;
+    };
+
+    // Pre-build all page links
+    const pageLinks = {
+        previous: page > 1 ? buildPaginationLink(page - 1) : null,
+        next: page < totalPages ? buildPaginationLink(page + 1) : null,
+        pages: Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+                pageNum = i + 1;
+            } else if (page <= 3) {
+                pageNum = i + 1;
+            } else if (page >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+            } else {
+                pageNum = page - 2 + i;
+            }
+            return {
+                number: pageNum,
+                url: buildPaginationLink(pageNum),
+                isActive: pageNum === page
+            };
+        })
     };
 
     return (
@@ -114,7 +136,7 @@ export default async function TransactionsPage({
                 page={page}
                 totalPages={totalPages}
                 totalCount={totalCount}
-                buildPaginationLink={buildPaginationLink}
+                pageLinks={pageLinks}
             />
         </div>
     );
