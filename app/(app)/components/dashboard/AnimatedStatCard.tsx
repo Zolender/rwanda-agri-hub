@@ -86,7 +86,7 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
             <div>
                 <p className="text-sm font-medium text-stone-500 mb-1">{title}</p>
                 <motion.h3
-                    className="text-3xl font-black text-stone-900 tracking-tight"
+                    className="text-3xl font-black text-stone-900 tracking-tight wrap-break-word"
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                     {typeof value === 'number' ? count.toLocaleString() : value}
