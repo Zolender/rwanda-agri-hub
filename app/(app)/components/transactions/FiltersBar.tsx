@@ -111,17 +111,17 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 p-6 space-y-5"
+            className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-5"
         >
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-600/10 rounded-lg">
+                    <div className="p-2.5 bg-emerald-50 rounded-xl">
                         <Filter className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">Filters</h2>
-                        <p className="text-xs text-stone-500 dark:text-stone-400">
+                        <h2 className="text-lg font-bold text-stone-900">Filters</h2>
+                        <p className="text-xs text-stone-500">
                             {totalCount.toLocaleString()} transaction{totalCount !== 1 ? 's' : ''} found
                         </p>
                     </div>
@@ -134,7 +134,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                             whileTap={{ scale: 0.98 }}
                             onClick={clearFilters}
                             disabled={isPending}
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 border border-stone-200 dark:border-stone-700 rounded-lg transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors"
                         >
                             <X className="w-4 h-4" />
                             Clear All
@@ -169,13 +169,13 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                                     initial={{ scale: 0, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{ scale: 0, opacity: 0 }}
-                                    className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 text-sm rounded-full border border-emerald-200 dark:border-emerald-800"
+                                    className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-sm rounded-full border border-emerald-200"
                                 >
                                     <Icon className="w-3.5 h-3.5" />
                                     <span className="font-medium">{filter.label}</span>
                                     <button
                                         onClick={() => removeFilter(filter.key)}
-                                        className="hover:bg-emerald-200 dark:hover:bg-emerald-900 rounded-full p-0.5 transition-colors"
+                                        className="hover:bg-emerald-100 rounded-full p-0.5 transition-colors"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
@@ -190,7 +190,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Product ID Search */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
                         Product ID
                     </label>
                     <div className="relative">
@@ -201,20 +201,20 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                             value={productSearch}
                             onChange={(e) => setProductSearch(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                            className="w-full pl-10 pr-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-800 placeholder:text-stone-400 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 transition-all text-sm"
+                            className="w-full pl-10 pr-3 py-2.5 border border-stone-200 rounded-xl bg-white placeholder:text-stone-400 text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                         />
                     </div>
                 </div>
 
                 {/* Movement Type */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
                         Movement Type
                     </label>
                     <select
                         value={movementType}
                         onChange={(e) => setMovementType(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-800 text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 transition-all text-sm"
+                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                     >
                         <option value="">All Types</option>
                         <option value="Sale">Sale</option>
@@ -225,7 +225,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
 
                 {/* Region */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
                         Region
                     </label>
                     <input
@@ -234,33 +234,33 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         value={region}
                         onChange={(e) => setRegion(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                        className="w-full px-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-800 placeholder:text-stone-400 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 transition-all text-sm"
+                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white placeholder:text-stone-400 text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                     />
                 </div>
 
                 {/* Date From */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
                         From Date
                     </label>
                     <input
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 transition-all text-sm"
+                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                     />
                 </div>
 
                 {/* Date To */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 dark:text-stone-300 mb-2 uppercase tracking-wide">
+                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
                         To Date
                     </label>
                     <input
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-300 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-600 transition-all text-sm"
+                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
                     />
                 </div>
             </div>
@@ -272,7 +272,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                     whileTap={{ scale: 0.98 }}
                     onClick={applyFilters}
                     disabled={isPending}
-                    className="px-6 py-2.5 bg-stone-900 dark:bg-stone-700 text-white rounded-xl hover:bg-stone-800 dark:hover:bg-stone-600 disabled:opacity-50 transition-colors font-semibold text-sm flex items-center gap-2 shadow-sm"
+                    className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-colors font-semibold text-sm flex items-center gap-2 shadow-sm"
                 >
                     {isPending ? (
                         <>
