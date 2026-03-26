@@ -53,7 +53,7 @@ export default function SidebarNav({ isDark }: { isDark: boolean }) {
                                     relative flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl
                                     transition-all duration-300 group overflow-hidden
                                     ${isActive 
-                                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg shadow-emerald-600/20' 
+                                        ? 'bg-linear-to-r from-emerald-600 to-emerald-500 text-white shadow-lg shadow-emerald-600/20' 
                                         : isDark
                                         ? 'text-stone-400 hover:bg-stone-800 hover:text-stone-100'
                                         : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900'
@@ -63,7 +63,7 @@ export default function SidebarNav({ isDark }: { isDark: boolean }) {
                                 {/* Background Shine Effect */}
                                 {isActive && (
                                     <motion.div
-                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                        className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                                         animate={{ x: ['-100%', '100%'] }}
                                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                     />
@@ -109,7 +109,7 @@ export default function SidebarNav({ isDark }: { isDark: boolean }) {
                     <motion.div
                         whileHover={{ scale: 1.1, rotate: 360 }}
                         transition={{ duration: 0.6 }}
-                        className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30"
+                        className="w-10 h-10 rounded-full bg-linear-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-emerald-600/30"
                     >
                         {session?.user?.name?.[0] || "U"}
                     </motion.div>
