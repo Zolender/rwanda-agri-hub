@@ -1,6 +1,8 @@
 import prisma from "@/app/lib/db";
 import { formatDistanceToNow, format } from "date-fns";
 import FiltersBar from "@/app/(app)/components/transactions/FiltersBar";
+import Link from "next/link";
+import TransactionsTable from "../components/transactions/TransactionsTable";
 
 type SearchParams = {
     page?: string;
@@ -14,9 +16,8 @@ type SearchParams = {
 export default async function TransactionsPage({
     searchParams,
 }: {
-    searchParams: Promise<SearchParams>; // ← Changed to Promise
+    searchParams: Promise<SearchParams>;
 }) {
-    // ← Await searchParams
     const params = await searchParams;
     
     const page = parseInt(params.page || '1');
@@ -50,7 +51,6 @@ export default async function TransactionsPage({
             where.transactionDate.gte = new Date(params.from);
         }
         if (params.to) {
-            // Set to end of day
             const toDate = new Date(params.to);
             toDate.setHours(23, 59, 59, 999);
             where.transactionDate.lte = toDate;
@@ -97,8 +97,10 @@ export default async function TransactionsPage({
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-slate-800">Transactions</h1>
-                <p className="text-sm text-slate-500 mt-1">
+                <h1 className="text-3xl font-black text-stone-900 tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                    Transactions
+                </h1>
+                <p className="text-sm text-stone-500 mt-2">
                     View and filter all inventory movements
                 </p>
             </div>
@@ -107,122 +109,13 @@ export default async function TransactionsPage({
             <FiltersBar totalCount={totalCount} />
 
             {/* Transactions Table */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-slate-50 border-b">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Date
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Product ID
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Category
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Quantity
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Stock After
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">
-                                    Region
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                            {transactions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center">
-                                        <div className="text-slate-500">
-                                            <p className="text-lg font-medium mb-1">No transactions found</p>
-                                            <p className="text-sm">Try adjusting your filters or import some data</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ) : (
-                                transactions.map((txn) => (
-                                    <tr key={txn.id} className="hover:bg-slate-50">
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-slate-900">
-                                                {format(txn.transactionDate, 'MMM d, yyyy')}
-                                            </div>
-                                            <div className="text-xs text-slate-500">
-                                                {formatDistanceToNow(txn.transactionDate, { addSuffix: true })}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                            {txn.product.id}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                            {txn.product.categoryId}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                txn.movementType === 'Sale' ? 'bg-red-100 text-red-800' :
-                                                txn.movementType === 'Purchase' ? 'bg-green-100 text-green-800' :
-                                                'bg-blue-100 text-blue-800'
-                                            }`}>
-                                                {txn.movementType}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                            {txn.quantityOrderedUnits.toLocaleString()} {txn.product.unitOfMeasure}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                            {txn.remainingStockUnits.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                                            {txn.region}
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="px-6 py-4 bg-slate-50 border-t flex items-center justify-between">
-                        <div className="text-sm text-slate-500">
-                            Page {page} of {totalPages} ({totalCount.toLocaleString()} total)
-                        </div>
-                        <div className="flex gap-2">
-                            {page > 1 ? (
-                                <a
-                                    href={buildPaginationLink(page - 1)}
-                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                                >
-                                    Previous
-                                </a>
-                            ) : (
-                                <span className="px-4 py-2 border border-slate-200 text-slate-400 rounded-lg cursor-not-allowed">
-                                    Previous
-                                </span>
-                            )}
-                            
-                            {page < totalPages ? (
-                                <a
-                                    href={buildPaginationLink(page + 1)}
-                                    className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-                                >
-                                    Next
-                                </a>
-                            ) : (
-                                <span className="px-4 py-2 border border-slate-200 text-slate-400 rounded-lg cursor-not-allowed">
-                                    Next
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </div>
+            <TransactionsTable 
+                transactions={transactions}
+                page={page}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                buildPaginationLink={buildPaginationLink}
+            />
         </div>
     );
 }
