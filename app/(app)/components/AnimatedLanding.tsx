@@ -191,7 +191,7 @@ export default function AnimatedLanding({ session }: AnimatedLandingProps) {
                 className={`relative min-h-[88vh] flex flex-col justify-center overflow-hidden ${isDark ? 'bg-stone-950' : 'bg-[#fafaf9]'}`}
             >
                 <TerrainBg />
-                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] rounded-full ${isDark ? 'bg-emerald-950/40' : 'bg-emerald-100/60'} blur-[120px] pointer-events-none`} />
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-175 h-125 rounded-full ${isDark ? 'bg-emerald-950/40' : 'bg-emerald-100/60'} blur-[120px] pointer-events-none`} />
 
                 <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
                     <div className="grid lg:grid-cols-[1fr_auto] gap-16 items-end">

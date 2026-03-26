@@ -61,7 +61,7 @@ export default function DashboardShell({ children, session }: { children: React.
                                 <motion.div
                                     whileHover={{ rotate: 360 }}
                                     transition={{ duration: 0.6 }}
-                                    className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl grid place-items-center shrink-0 shadow-lg shadow-emerald-600/20"
+                                    className="w-9 h-9 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-xl grid place-items-center shrink-0 shadow-lg shadow-emerald-600/20"
                                 >
                                     <Leaf className="w-5 h-5 text-white" strokeWidth={2.5} />
                                 </motion.div>
@@ -125,7 +125,7 @@ export default function DashboardShell({ children, session }: { children: React.
                     </button>
                     
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg grid place-items-center">
+                        <div className="w-7 h-7 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-lg grid place-items-center">
                             <Leaf className="w-4 h-4 text-white" strokeWidth={2.5} />
                         </div>
                         <span className={`text-base font-black ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
