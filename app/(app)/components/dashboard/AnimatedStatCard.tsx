@@ -96,7 +96,7 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
                 </p>
                 {/* ↓ text-stone-900 → adapts in dark */}
                 <motion.h3
-                    className={`text-3xl font-black tracking-tight break-words ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
+                    className={`text-3xl font-black tracking-tight wrap-break-words ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                     {typeof value === 'number' ? count.toLocaleString() : value}
