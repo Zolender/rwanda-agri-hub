@@ -9,7 +9,7 @@ import {
     Activity,
     LucideIcon 
 } from 'lucide-react';
-import { useDarkMode } from '@/app/(app)/components/DarkModeContext';
+import { useDarkMode } from '../DarkModeContext'; // ← NEW
 
 interface AnimatedStatCardProps {
     title: string;
@@ -30,10 +30,10 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export default function AnimatedStatCard({ title, value, iconName, description, trend }: AnimatedStatCardProps) {
+    const { isDark } = useDarkMode(); // ← NEW
     const [count, setCount] = useState(0);
     const numericValue = typeof value === 'number' ? value : 0;
     const Icon = iconMap[iconName];
-    const { isDark } = useDarkMode();
 
     useEffect(() => {
         if (typeof value === 'number') {
@@ -57,8 +57,9 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+            whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.15)" }}
             transition={{ duration: 0.3 }}
+            // ↓ bg-white → dark:bg-stone-900, border adapts too
             className={`p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all group ${
                 isDark
                     ? 'bg-stone-900 border-stone-700'
@@ -79,8 +80,8 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: "spring" }}
                         className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                            trend.isPositive
-                                ? 'bg-emerald-100 text-emerald-700'
+                            trend.isPositive 
+                                ? 'bg-emerald-100 text-emerald-700' 
                                 : 'bg-rose-100 text-rose-700'
                         }`}
                     >
@@ -89,16 +90,19 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
                 )}
             </div>
             <div>
+                {/* ↓ text-stone-500 → adapts in dark */}
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
                     {title}
                 </p>
+                {/* ↓ text-stone-900 → adapts in dark */}
                 <motion.h3
-                    className={`text-3xl font-black tracking-tight wrap-break-word ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
+                    className={`text-3xl font-black tracking-tight break-words ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                     {typeof value === 'number' ? count.toLocaleString() : value}
                 </motion.h3>
                 {description && (
+                    // ↓ text-stone-400 → slightly lighter in dark
                     <p className={`text-xs mt-2 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
                         {description}
                     </p>
