@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Search, Filter, X, Download, Calendar, MapPin, Package, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDarkMode } from "@/app/(app)/components/DarkModeContext";
 
 type FiltersBarProps = {
     totalCount: number;
@@ -13,6 +14,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
+    const { isDark } = useDarkMode();
 
     // Read current filters from URL
     const [movementType, setMovementType] = useState(searchParams.get('movementType') || '');
@@ -111,7 +113,9 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 space-y-5"
+            className={`rounded-2xl shadow-sm border p-6 space-y-5 ${
+                isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
+            }`}
         >
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -120,7 +124,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         <Filter className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-stone-900">Filters</h2>
+                        <h2 className={`text-lg font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>Filters</h2>
                         <p className="text-xs text-stone-500">
                             {totalCount.toLocaleString()} transaction{totalCount !== 1 ? 's' : ''} found
                         </p>
@@ -134,7 +138,11 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                             whileTap={{ scale: 0.98 }}
                             onClick={clearFilters}
                             disabled={isPending}
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border border-stone-200 rounded-lg transition-colors"
+                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                                isDark
+                                    ? 'bg-stone-800 border border-stone-700 text-stone-400 hover:text-stone-200 hover:bg-stone-700'
+                                    : 'text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border border-stone-200'
+                            }`}
                         >
                             <X className="w-4 h-4" />
                             Clear All
@@ -190,7 +198,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {/* Product ID Search */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-700'}`}>
                         Product ID
                     </label>
                     <div className="relative">
@@ -201,20 +209,28 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                             value={productSearch}
                             onChange={(e) => setProductSearch(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                            className="w-full pl-10 pr-3 py-2.5 border border-stone-200 rounded-xl bg-white placeholder:text-stone-400 text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                            className={`w-full pl-10 pr-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm ${
+                                isDark
+                                    ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                                    : 'border-stone-200 bg-white placeholder:text-stone-400 text-stone-900'
+                            }`}
                         />
                     </div>
                 </div>
 
                 {/* Movement Type */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-700'}`}>
                         Movement Type
                     </label>
                     <select
                         value={movementType}
                         onChange={(e) => setMovementType(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                        className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm ${
+                            isDark
+                                ? 'bg-stone-800 border-stone-700 text-stone-100'
+                                : 'border-stone-200 bg-white text-stone-700'
+                        }`}
                     >
                         <option value="">All Types</option>
                         <option value="Sale">Sale</option>
@@ -225,7 +241,7 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
 
                 {/* Region */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-700'}`}>
                         Region
                     </label>
                     <input
@@ -234,33 +250,45 @@ export default function FiltersBar({ totalCount }: FiltersBarProps) {
                         value={region}
                         onChange={(e) => setRegion(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white placeholder:text-stone-400 text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                        className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm ${
+                            isDark
+                                ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                                : 'border-stone-200 bg-white placeholder:text-stone-400 text-stone-900'
+                        }`}
                     />
                 </div>
 
                 {/* Date From */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-700'}`}>
                         From Date
                     </label>
                     <input
                         type="date"
                         value={dateFrom}
                         onChange={(e) => setDateFrom(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                        className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm ${
+                            isDark
+                                ? 'bg-stone-800 border-stone-700 text-stone-100'
+                                : 'border-stone-200 bg-white text-stone-900'
+                        }`}
                     />
                 </div>
 
                 {/* Date To */}
                 <div>
-                    <label className="block text-xs font-semibold text-stone-700 mb-2 uppercase tracking-wide">
+                    <label className={`block text-xs font-semibold mb-2 uppercase tracking-wide ${isDark ? 'text-stone-400' : 'text-stone-700'}`}>
                         To Date
                     </label>
                     <input
                         type="date"
                         value={dateTo}
                         onChange={(e) => setDateTo(e.target.value)}
-                        className="w-full px-3 py-2.5 border border-stone-200 rounded-xl bg-white text-stone-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                        className={`w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm ${
+                            isDark
+                                ? 'bg-stone-800 border-stone-700 text-stone-100'
+                                : 'border-stone-200 bg-white text-stone-900'
+                        }`}
                     />
                 </div>
             </div>

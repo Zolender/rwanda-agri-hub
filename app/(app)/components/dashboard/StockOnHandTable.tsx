@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronsUpDown, ChevronUp, Search, Package} from "lucide-react";
 import {useState, useMemo} from "react";
+import { useDarkMode } from "@/app/(app)/components/DarkModeContext";
 
 
 type Product = {
@@ -24,6 +25,7 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState<SortField>("id");
     const [sortDirection, setSortDirection] =  useState<SortDirection>("asc");
+    const { isDark } = useDarkMode();
 
 
     const handleSort = (field: SortField)=>{
@@ -73,14 +75,14 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
 
     if (products.length === 0) {
         return (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-                <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className={`rounded-lg shadow p-12 text-center ${isDark ? 'bg-stone-900' : 'bg-white'}`}>
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-stone-800 text-stone-400' : 'bg-slate-100 text-slate-400'}`}>
                     <Package size={32} />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                <h3 className={`text-lg font-semibold mb-2 ${isDark ? 'text-stone-100' : 'text-slate-800'}`}>
                     No Products Yet
                 </h3>
-                <p className="text-slate-500 mb-6">
+                <p className={`mb-6 ${isDark ? 'text-stone-400' : 'text-slate-500'}`}>
                     Get started by importing your inventory data from a CSV file.
                 </p>
                 <a
@@ -97,17 +99,21 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
 
     
     return (
-        <div className="bg-white rounded-lg shadow">
+        <div className={`rounded-lg shadow ${isDark ? 'bg-stone-900' : 'bg-white'}`}>
             {/* Search Bar */}
-            <div className="p-4 border-b">
+            <div className={`p-4 border-b ${isDark ? 'border-stone-700' : ''}`}>
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-700 w-5 h-5" />
+                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-stone-400' : 'text-stone-700'}`} />
                     <input
                         type="text"
                         placeholder="Search by Product ID or Category..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border placeholder:text-stone-400 text-stone-700 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                            isDark
+                                ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                                : 'border-gray-300 placeholder:text-stone-400 text-stone-700'
+                        }`}
                     />
                 </div>
             </div>
@@ -115,10 +121,12 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className={`border-b ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50'}`}>
                         <tr>
                             <th 
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                                    isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-gray-500 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleSort("id")}
                             >
                                 <div className="flex items-center gap-2">
@@ -127,7 +135,9 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                 </div>
                             </th>
                             <th 
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                                    isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-gray-500 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleSort("categoryId")}
                             >
                                 <div className="flex items-center gap-2">
@@ -136,7 +146,9 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                 </div>
                             </th>
                             <th 
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                                    isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-gray-500 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleSort("quantity")}
                             >
                                 <div className="flex items-center gap-2">
@@ -144,11 +156,13 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                     <SortIcon field="quantity" />
                                 </div>
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                 Unit
                             </th>
                             <th 
-                                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                                    isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-gray-500 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleSort("reorderPointUnits")}
                             >
                                 <div className="flex items-center gap-2">
@@ -156,11 +170,13 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                     <SortIcon field="reorderPointUnits" />
                                 </div>
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                 Status
                             </th>
                             <th 
-                                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                                className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                                    isDark ? 'text-stone-400 hover:bg-stone-800' : 'text-gray-500 hover:bg-gray-100'
+                                }`}
                                 onClick={() => handleSort("unitCostRwf")}
                             >
                                 <div className="flex items-center justify-end gap-2">
@@ -170,10 +186,10 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className={`divide-y ${isDark ? 'bg-stone-900 divide-stone-700' : 'bg-white divide-gray-200'}`}>
                         {filteredAndSorted.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                                <td colSpan={7} className={`px-6 py-8 text-center ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                     No products found
                                 </td>
                             </tr>
@@ -182,20 +198,20 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                 const isLowStock = product.quantity <= product.reorderPointUnits;
                                 
                                 return (
-                                    <tr key={product.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <tr key={product.id} className={`transition-colors ${isDark ? 'hover:bg-stone-800' : 'hover:bg-gray-50'}`}>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
                                             {product.id}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                             {product.categoryId}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
                                             {product.quantity.toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                             {product.unitOfMeasure}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
                                             {product.reorderPointUnits.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
@@ -209,7 +225,7 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
                                             {product.unitCostRwf.toLocaleString('en-US', { maximumFractionDigits: 2 })}
                                         </td>
                                     </tr>
@@ -221,7 +237,7 @@ const StockOnHandTable = ({products}: {products: Product[]}) => {
             </div>
 
             {/* Results count */}
-            <div className="px-6 py-3 bg-gray-50 border-t text-sm text-gray-500">
+            <div className={`px-6 py-3 border-t text-sm ${isDark ? 'bg-stone-800 border-stone-700 text-stone-400' : 'bg-gray-50 text-gray-500'}`}>
                 Showing {filteredAndSorted.length} of {products.length} products
             </div>
         </div>

@@ -9,6 +9,7 @@ import {
     Activity,
     LucideIcon 
 } from 'lucide-react';
+import { useDarkMode } from '@/app/(app)/components/DarkModeContext';
 
 interface AnimatedStatCardProps {
     title: string;
@@ -32,6 +33,7 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
     const [count, setCount] = useState(0);
     const numericValue = typeof value === 'number' ? value : 0;
     const Icon = iconMap[iconName];
+    const { isDark } = useDarkMode();
 
     useEffect(() => {
         if (typeof value === 'number') {
@@ -58,7 +60,9 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
             transition={{ duration: 0.3 }}
-            className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm hover:shadow-lg transition-all group"
+            className={`p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all group ${
+                isDark ? 'bg-stone-900 border-stone-700' : 'bg-white border-stone-200'
+            }`}
         >
             <div className="flex items-center justify-between mb-4">
                 <motion.div
@@ -84,15 +88,15 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
                 )}
             </div>
             <div>
-                <p className="text-sm font-medium text-stone-500 mb-1">{title}</p>
+                <p className={`text-sm font-medium mb-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>{title}</p>
                 <motion.h3
-                    className="text-3xl font-black text-stone-900 tracking-tight wrap-break-word"
+                    className={`text-3xl font-black tracking-tight wrap-break-word ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                     {typeof value === 'number' ? count.toLocaleString() : value}
                 </motion.h3>
                 {description && (
-                    <p className="text-xs text-stone-400 mt-2">{description}</p>
+                    <p className={`text-xs mt-2 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>{description}</p>
                 )}
             </div>
         </motion.div>
