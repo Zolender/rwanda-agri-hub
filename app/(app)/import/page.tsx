@@ -123,7 +123,6 @@ export default function ImportPage() {
                 });
 
                 if (totalImported > 0) {
-                    // Success confetti!
                     confetti({
                         particleCount: 100,
                         spread: 70,
@@ -237,10 +236,10 @@ export default function ImportPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
             >
-                <h1 className="text-3xl font-black text-stone-900 tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
+                <h1 className="text-3xl font-black text-stone-900 dark:text-stone-100 tracking-tight" style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}>
                     Import Inventory
                 </h1>
-                <p className="text-stone-500 text-sm mt-2">
+                <p className="text-stone-500 dark:text-stone-400 text-sm mt-2">
                     Upload your distribution CSV to sync stock levels across the system.
                 </p>
             </motion.header>
@@ -252,38 +251,38 @@ export default function ImportPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center"
                     >
                         <motion.div
                             initial={{ scale: 0.9, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.9, y: 20 }}
-                            className="bg-white p-8 rounded-2xl shadow-2xl border border-stone-200 max-w-md w-full mx-4"
+                            className="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-2xl border border-stone-200 dark:border-stone-800 max-w-md w-full mx-4"
                         >
                             <div className="space-y-6">
                                 {/* Animated Upload Icon */}
                                 <motion.div
                                     animate={{ rotate: [0, 360] }}
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto"
+                                    className="w-16 h-16 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto"
                                 >
                                     <Upload className="w-8 h-8 text-white" />
                                 </motion.div>
 
                                 <div className="text-center">
-                                    <h3 className="font-bold text-xl text-stone-900 mb-2">Importing Data...</h3>
-                                    <p className="text-sm text-stone-500">Please stay on this page until complete</p>
+                                    <h3 className="font-bold text-xl text-stone-900 dark:text-stone-100 mb-2">Importing Data...</h3>
+                                    <p className="text-sm text-stone-500 dark:text-stone-400">Please stay on this page until complete</p>
                                 </div>
 
                                 {/* Enhanced Progress Bar */}
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span className="font-semibold text-stone-700">{displayProgress}%</span>
-                                        <span className="text-stone-500">Processing...</span>
+                                        <span className="font-semibold text-stone-700 dark:text-stone-300">{displayProgress}%</span>
+                                        <span className="text-stone-500 dark:text-stone-400">Processing...</span>
                                     </div>
-                                    <div className="h-3 bg-stone-100 rounded-full overflow-hidden">
+                                    <div className="h-3 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
                                         <motion.div
-                                            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full"
+                                            className="h-full bg-linear-to-r from-emerald-500 to-emerald-600 rounded-full"
                                             initial={{ width: 0 }}
                                             animate={{ width: `${displayProgress}%` }}
                                             transition={{ duration: 0.3 }}
@@ -303,21 +302,21 @@ export default function ImportPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="bg-white border border-stone-200 rounded-2xl p-6 space-y-6 shadow-sm"
+                        className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-6 space-y-6 shadow-sm"
                     >
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center">
-                                    <Sparkles className="w-5 h-5 text-emerald-600" />
+                                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950 rounded-lg flex items-center justify-center">
+                                    <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                                 </div>
-                                <h2 className="text-xl font-bold text-stone-900">Import Results</h2>
+                                <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100">Import Results</h2>
                             </div>
                             {importResults.errorCount > 0 && (
                                 <motion.button
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={downloadErrorReport}
-                                    className="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200 transition-colors font-medium text-sm"
+                                    className="flex items-center gap-2 px-4 py-2 bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 rounded-lg hover:bg-rose-200 dark:hover:bg-rose-900 transition-colors font-medium text-sm"
                                 >
                                     <Download className="w-4 h-4" />
                                     Download Error Report
@@ -331,10 +330,10 @@ export default function ImportPage() {
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.1 }}
-                                className="bg-stone-50 rounded-xl p-5 border border-stone-200"
+                                className="bg-stone-50 dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700"
                             >
-                                <div className="text-stone-500 text-sm font-medium mb-1">Total Processed</div>
-                                <div className="text-3xl font-black text-stone-900">
+                                <div className="text-stone-500 dark:text-stone-400 text-sm font-medium mb-1">Total Processed</div>
+                                <div className="text-3xl font-black text-stone-900 dark:text-stone-100">
                                     {importResults.totalProcessed}
                                 </div>
                             </motion.div>
@@ -343,13 +342,13 @@ export default function ImportPage() {
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.2 }}
-                                className="bg-emerald-50 rounded-xl p-5 border border-emerald-200"
+                                className="bg-emerald-50 dark:bg-emerald-950 rounded-xl p-5 border border-emerald-200 dark:border-emerald-800"
                             >
-                                <div className="flex items-center gap-2 text-emerald-700 text-sm font-medium mb-1">
+                                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 text-sm font-medium mb-1">
                                     <CheckCircle className="w-4 h-4" />
                                     Successful
                                 </div>
-                                <div className="text-3xl font-black text-emerald-700">
+                                <div className="text-3xl font-black text-emerald-700 dark:text-emerald-400">
                                     {importResults.successCount}
                                 </div>
                             </motion.div>
@@ -358,13 +357,13 @@ export default function ImportPage() {
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.3 }}
-                                className="bg-rose-50 rounded-xl p-5 border border-rose-200"
+                                className="bg-rose-50 dark:bg-rose-950 rounded-xl p-5 border border-rose-200 dark:border-rose-800"
                             >
-                                <div className="flex items-center gap-2 text-rose-700 text-sm font-medium mb-1">
+                                <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 text-sm font-medium mb-1">
                                     <AlertCircle className="w-4 h-4" />
                                     Failed
                                 </div>
-                                <div className="text-3xl font-black text-rose-700">
+                                <div className="text-3xl font-black text-rose-700 dark:text-rose-400">
                                     {importResults.errorCount}
                                 </div>
                             </motion.div>
@@ -373,28 +372,28 @@ export default function ImportPage() {
                         {/* Error Details Table */}
                         {importResults.errors.length > 0 && (
                             <div>
-                                <h3 className="text-sm font-bold text-stone-700 mb-3 uppercase tracking-wide">
+                                <h3 className="text-sm font-bold text-stone-700 dark:text-stone-300 mb-3 uppercase tracking-wide">
                                     Failed Records ({importResults.errors.length})
                                 </h3>
-                                <div className="border border-stone-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                                <div className="border border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
                                     <table className="w-full">
-                                        <thead className="bg-stone-50 sticky top-0">
+                                        <thead className="bg-stone-50 dark:bg-stone-800 sticky top-0">
                                             <tr>
-                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 uppercase tracking-wider">Row</th>
-                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 uppercase tracking-wider">Product ID</th>
-                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 uppercase tracking-wider">Error</th>
+                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">Row</th>
+                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">Product ID</th>
+                                                <th className="px-4 py-3 text-left text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">Error</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="bg-white divide-y divide-stone-100">
+                                        <tbody className="bg-white dark:bg-stone-900 divide-y divide-stone-100 dark:divide-stone-800">
                                             {importResults.errors.map((err, idx) => (
-                                                <tr key={idx} className="hover:bg-stone-50 transition-colors">
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-stone-900">
+                                                <tr key={idx} className="hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-stone-900 dark:text-stone-100">
                                                         {err.rowNumber || 'N/A'}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-stone-900">
+                                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-stone-900 dark:text-stone-100">
                                                         {err.productId}
                                                     </td>
-                                                    <td className="px-4 py-3 text-sm text-rose-600">
+                                                    <td className="px-4 py-3 text-sm text-rose-600 dark:text-rose-400">
                                                         {err.error}
                                                     </td>
                                                 </tr>
@@ -416,24 +415,24 @@ export default function ImportPage() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`bg-white border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center space-y-6 transition-all ${
+                className={`bg-white dark:bg-stone-900 border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center space-y-6 transition-all ${
                     isDragging
-                        ? 'border-emerald-500 bg-emerald-50'
-                        : 'border-stone-300 hover:border-emerald-400'
+                        ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950'
+                        : 'border-stone-300 dark:border-stone-700 hover:border-emerald-400 dark:hover:border-emerald-600'
                 }`}
             >
                 <motion.div
                     animate={isDragging ? { scale: 1.1 } : { scale: 1 }}
                     className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors ${
-                        isDragging ? 'bg-emerald-500' : 'bg-emerald-50'
+                        isDragging ? 'bg-emerald-500' : 'bg-emerald-50 dark:bg-emerald-950'
                     }`}
                 >
-                    <FileText className={`w-10 h-10 ${isDragging ? 'text-white' : 'text-emerald-600'}`} strokeWidth={1.5} />
+                    <FileText className={`w-10 h-10 ${isDragging ? 'text-white' : 'text-emerald-600 dark:text-emerald-400'}`} strokeWidth={1.5} />
                 </motion.div>
 
                 <div className="text-center">
                     <label className="cursor-pointer">
-                        <span className="text-emerald-600 font-semibold text-lg hover:underline">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-lg hover:underline">
                             Click to upload
                         </span>
                         <input
@@ -443,7 +442,7 @@ export default function ImportPage() {
                             onChange={handleFileChange}
                             disabled={isUploading}
                         />
-                        <span className="text-stone-500 text-sm block mt-2">
+                        <span className="text-stone-500 dark:text-stone-400 text-sm block mt-2">
                             or drag and drop your CSV file here
                         </span>
                     </label>
@@ -453,13 +452,13 @@ export default function ImportPage() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl"
+                        className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800 rounded-xl"
                     >
-                        <FileText className="w-5 h-5 text-emerald-600" />
-                        <span className="text-sm text-stone-700 font-medium">{file.name}</span>
+                        <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-sm text-stone-700 dark:text-stone-300 font-medium">{file.name}</span>
                         <button
                             onClick={() => setFile(null)}
-                            className="ml-2 text-stone-400 hover:text-rose-500 transition-colors"
+                            className="ml-2 text-stone-400 dark:text-stone-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -500,13 +499,13 @@ export default function ImportPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="border-2 border-rose-200 bg-rose-50 rounded-xl p-6"
+                className="border-2 border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 rounded-xl p-6"
             >
-                <h3 className="text-lg font-bold text-rose-900 mb-2 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-rose-900 dark:text-rose-400 mb-2 flex items-center gap-2">
                     <TriangleAlert className="w-5 h-5" />
                     Danger Zone
                 </h3>
-                <p className="text-sm text-rose-700 mb-4">
+                <p className="text-sm text-rose-700 dark:text-rose-400 mb-4">
                     This will permanently delete all inventory data (products, transactions, shipments, FX rates, metrics).
                     <br />
                     <strong>User accounts are NOT affected.</strong>
