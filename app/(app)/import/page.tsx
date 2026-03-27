@@ -1,369 +1,684 @@
 'use client';
 
-
-import { useState, useEffect} from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Papa from 'papaparse';
 import { importInventoryAction } from '@/app/lib/actions/import-inventory';
 import { toast } from 'sonner';
 import { resetInventoryAction } from '@/app/lib/actions/reset-inventory';
-import { TriangleAlert, Download, AlertCircle, CheckCircle, Plus } from 'lucide-react';
-
+import {
+    TriangleAlert, Download, AlertCircle, CheckCircle,
+    Upload, FileText, Trash2, Sparkles, X, Info, Table2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import DangerModal from '../components/DangerModal';
 
 type ImportError = {
-    productId :string,
+    productId: string;
     error: string;
     rowNumber?: number;
+};
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function downloadTemplateCsv() {
+    const headers = [
+        'product_id', 'product_name', 'category', 'unit',
+        'quantity', 'unit_price', 'region', 'movement_type', 'date'
+    ];
+    const example = [
+        'PROD-001', 'DAP Fertilizer 50kg', 'Fertilizers', 'bag',
+        '120', '45000', 'Kigali', 'IN', '2026-03-27'
+    ];
+    const csv = [headers.join(','), example.join(',')].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'agri-hub-import-template.csv';
+    link.click();
+    toast.success('Template downloaded!');
+}
+
+// ── component ─────────────────────────────────────────────────────────────────
 
 export default function ImportPage() {
+    const [isDark, setIsDark] = useState(false);
+
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
-    const [displayProgress, setDisplayProgress] = useState(0)
-    const [isResetting, setIsResetting] = useState(false);
+    const [displayProgress, setDisplayProgress] = useState(0);
+    const [currentChunkInfo, setCurrentChunkInfo] = useState<{ start: number; end: number; total: number } | null>(null);
+    const [isDragging, setIsDragging] = useState(false);
 
-    const [importResults, setImporResults] = useState<{
-        totalProcessed: number
-        successCount: number
+    const [importResults, setImportResults] = useState<{
+        totalProcessed: number;
+        successCount: number;
         errorCount: number;
         errors: ImportError[];
-    } | null>(null)
-    
-    
-    useEffect(()=>{
-        if(displayProgress < progress){
-            const timer = setTimeout(()=>{
-                setDisplayProgress(prev =>{
-                    const diff = progress - prev
-                    const increment = Math.max(1,Math.ceil(diff/10))
-                    return Math.min(prev+increment , progress)
-                })
-            }, 50)
-            return ()=> clearTimeout(timer)
-        }
-    }, [progress, displayProgress])
+    } | null>(null);
 
+    const [dangerModalOpen, setDangerModalOpen] = useState(false);
+    const [isResetting, setIsResetting] = useState(false);
+
+    // ── sync dark mode from localStorage (matches DashboardShell) ──
     useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        const saved = localStorage.getItem('darkMode');
+        if (saved !== null) setIsDark(saved === 'true');
+
+        const onStorage = (e: StorageEvent) => {
+            if (e.key === 'darkMode') setIsDark(e.newValue === 'true');
+        };
+        window.addEventListener('storage', onStorage);
+        return () => window.removeEventListener('storage', onStorage);
+    }, []);
+
+    // ── smooth progress animation ──
+    useEffect(() => {
+        if (displayProgress < progress) {
+            const timer = setTimeout(() => {
+                setDisplayProgress(prev => {
+                    const diff = progress - prev;
+                    const increment = Math.max(1, Math.ceil(diff / 10));
+                    return Math.min(prev + increment, progress);
+                });
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [progress, displayProgress]);
+
+    // ── navigation guard during upload ──
+    useEffect(() => {
+        const guard = (e: BeforeUnloadEvent) => {
             if (isUploading) {
-            // Standard way to trigger the browser's "Are you sure?" prompt
-            e.preventDefault();
-            // Most browsers require this for the prompt to actually show
-            return (e.returnValue = "Import in progress. Are you sure you want to leave?");
+                e.preventDefault();
+                e.returnValue = 'Import in progress. Are you sure you want to leave?';
             }
         };
+        window.addEventListener('beforeunload', guard);
+        return () => window.removeEventListener('beforeunload', guard);
+    }, [isUploading]);
 
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        
-        // Cleanup: very important so the warning goes away after import finishes
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-        }, [isUploading]);
-
-
+    // ── import logic ──
     const handleImport = async () => {
         if (!file) return;
-        const confirmMessage = `You are about to import ${file.name}. This will update stock levels for many products. Do you want to proceed?`;
-        if (!window.confirm(confirmMessage)) return;
 
         setIsUploading(true);
-        setProgress(0)
-        setDisplayProgress(0)
-        setImporResults(null)
+        setProgress(0);
+        setDisplayProgress(0);
+        setImportResults(null);
+        setCurrentChunkInfo(null);
 
         Papa.parse(file, {
             header: true,
             skipEmptyLines: 'greedy',
-            transformHeader: h => h.trim(),
+            transformHeader: (h) => h.trim(),
             complete: async (results) => {
-                const allData = results.data as any[];
-                
-                // LOG 1: Check if PapaParse actually found rows
-                console.log("Total rows found by PapaParse:", allData.length);
-                console.log("First row sample:", allData[0]);
+                const allData = results.data as Record<string, unknown>[];
 
                 if (allData.length === 0) {
-                    toast.error("The CSV file appears to be empty.");
+                    toast.error('The CSV file appears to be empty.');
                     setIsUploading(false);
                     return;
                 }
 
                 const chunkSize = 100;
                 let totalImported = 0;
-                const allErrors: ImportError[] = []
+                const allErrors: ImportError[] = [];
 
                 for (let i = 0; i < allData.length; i += chunkSize) {
                     const chunk = allData.slice(i, i + chunkSize);
                     const startRow = i + 1;
-                    const endRow = Math.min(i+chunkSize, allData.length)
+                    const endRow = Math.min(i + chunkSize, allData.length);
 
-                    setProgress(Math.round((i/allData.length) * 100));
-                    
-                    
+                    setProgress(Math.round((i / allData.length) * 100));
+                    setCurrentChunkInfo({ start: startRow, end: endRow, total: allData.length });
+
                     try {
                         const response = await importInventoryAction(chunk);
                         if (response && response.count !== undefined && response.count > 0) {
-                            totalImported += response.count
+                            totalImported += response.count;
 
-                            //let's now handle partial success
-                            if(response.errors && response.errors.length > 0){
-                                const errorsWithRowNumbers = response.errors.map((err,index)=>({
-                                    ...err, rowNumber: startRow + index
-                                }))
-                                allErrors.push(...errorsWithRowNumbers)
-                                console.warn("Some products failed: ", response.errors)
-                                toast.warning(response.message || `${response.errors.length} products failed`);
-                            }else{
-                                toast.success(`Processed rows ${startRow}-${endRow}`, {duration: 2000})
+                            if (response.errors && response.errors.length > 0) {
+                                const errorsWithRows = response.errors.map((err: ImportError, index: number) => ({
+                                    ...err,
+                                    rowNumber: startRow + index,
+                                }));
+                                allErrors.push(...errorsWithRows);
+                                toast.warning(response.message || `${response.errors.length} rows failed`);
+                            } else {
+                                toast.success(`Rows ${startRow}–${endRow} imported`, { duration: 2000 });
                             }
                         } else {
-                            // LOG 2: If the server returns an error, show it
-                            console.error(`Server Error at row ${startRow}:`, response?.error);
-                            toast.error(response?.error || "Import failed at a chunk.");
-                            break; 
+                            toast.error(response?.error || 'Import failed at a chunk.');
+                            break;
                         }
-                    } catch (err) {
-                        console.error("Network Fetch Error:", err);
-                        toast.error("Network error during import. Please check your connecion.")
+                    } catch {
+                        toast.error('Network error during import. Please check your connection.');
                         break;
                     }
                 }
 
                 setProgress(100);
-                setImporResults({
+                setCurrentChunkInfo(null);
+                setImportResults({
                     totalProcessed: allData.length,
                     successCount: totalImported,
                     errorCount: allErrors.length,
-                    errors: allErrors
-                })
+                    errors: allErrors,
+                });
 
                 if (totalImported > 0) {
-                    toast.success(`Mission Accomplished! ${totalImported} items imported.`);
-                
+                    confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+                    toast.success(`🎉 ${totalImported} records imported successfully!`);
                     setFile(null);
                 } else {
-                    toast.error("Import finished but 0 records were saved. Check the console.");
+                    toast.error('Import finished but 0 records were saved. Check the errors below.');
                 }
-                
+
                 setIsUploading(false);
             },
         });
     };
 
-    const handleReset = async ()=>{
-        const confirmed = window.confirm("WARNING: This will DELETE ALL products, transactions, shipments, FX rates, and metrics.\n\nUser accounts will NOT be affected\n\n\This action CANNOT be undone.\n\nType 'DELETE' in the next propt to confirm.")
-        if(!confirmed)return 
-        const secondConfirm = window.prompt("Type DELETE(in all caps) to confirm:")
-        if(secondConfirm !== 'DELETE'){
-            toast.error("Reset cancelled. You did not type Delete correctly.")
-            return
-        }
+    // ── reset logic ──
+    const handleReset = async () => {
         setIsResetting(true);
-        try{
+        try {
             const response = await resetInventoryAction();
-
-            if(response.success){
-                toast.success(response.message || "Database reset successfully")
-            }else{
-                toast.error(response.error || "Failed to reset database")
+            if (response.success) {
+                toast.success(response.message || 'Database reset successfully');
+            } else {
+                toast.error(response.error || 'Failed to reset database');
             }
-        }catch(err: any){
-            toast.error(err.message || "Network error during reset")
-        }finally{
-            setIsResetting(false)
-        }
-    }
-        
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files){
-            const selectedFile = e.target.files[0];
-
-            const maxSize = 5 * 1024 * 1024
-
-            if(selectedFile.size> maxSize){
-                const sizeMB = (selectedFile.size / (1024 * 1024)).toFixed(2)
-                toast.warning(`File size is ${sizeMB}MB. Large files may take longer to process.`, {duration: 4000})
-            }
-            setFile(selectedFile);
+        } catch (err: unknown) {
+            toast.error(err instanceof Error ? err.message : 'Network error during reset');
+        } finally {
+            setIsResetting(false);
+            setDangerModalOpen(false);
         }
     };
 
+    // ── file handling ──
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const selected = e.target.files[0];
+        if (selected.size > 5 * 1024 * 1024) {
+            toast.warning(`File is ${formatBytes(selected.size)} — large files may take longer to process.`, { duration: 4000 });
+        }
+        setFile(selected);
+    };
 
-const downloadErrorReport=()=>{
-    if(!importResults||importResults.errors.length === 0)return
-    const headers = ["Row Number", "Product ID", "Error"]
-    const rows = importResults.errors.map( err => [err.rowNumber || "Unknown",
-        err.productId,
-        err.error
-    ])
-    const csvContent = [
-        headers.join(','),...rows.map(row=>row.map(cell=>`"${cell}`).join(","))
-    ].join("\n")
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    }, []);
 
-    const blob = new Blob([csvContent], {type: "text/csv;charset=utf-8"});
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    }, []);
 
-    link.setAttribute("href", url);
-    link.setAttribute("download", `import-errors-${new Date().toISOString().slice(0,10)}.csv`)
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const dropped = e.dataTransfer.files[0];
+        if (dropped?.name.endsWith('.csv')) {
+            setFile(dropped);
+        } else {
+            toast.error('Please upload a .csv file');
+        }
+    }, []);
 
-    toast.success("Error report downladed!")
-}
+    // ── error report download ──
+    const downloadErrorReport = () => {
+        if (!importResults || importResults.errors.length === 0) return;
+        const headers = ['Row Number', 'Product ID', 'Error'];
+        const rows = importResults.errors.map((err) => [
+            err.rowNumber ?? 'Unknown',
+            err.productId,
+            err.error,
+        ]);
+        const csv = [
+            headers.join(','),
+            ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
+        ].join('\n');
 
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `import-errors-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        toast.success('Error report downloaded!');
+    };
+
+    // ── stagger variants ──
+    const container = {
+        hidden: {},
+        show: { transition: { staggerChildren: 0.08 } },
+    };
+    const item = {
+        hidden: { opacity: 0, y: 20 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+    };
+
+    // ── render ────────────────────────────────────────────────────────────────
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-        <header>
-            <h1 className="text-2xl font-light text-slate-800 tracking-tight">Import Inventory</h1>
-            <p className="text-slate-500 text-sm">Upload your distribution CSV to sync stock levels.</p>
-        </header>
-
-            {isUploading && (
-                <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-[2px] z-50 flex items-center justify-center">
-                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 max-w-sm text-center space-y-4">
-                        <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto" />
-                            <h3 className="font-semibold text-slate-800">Importing Data...</h3>
-                            <p className="text-sm text-slate-500">Progress: {progress}%</p>
-                            <p className="text-xs text-slate-400 mt-1">Please stay on this page until complete.</p>
-                    </div>
-                </div>
-                )}
-
-
-                {importResults && (
-                <div className="bg-white border-2 border-slate-200 rounded-3xl p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-slate-800">Import Results</h2>
-                        {importResults.errorCount > 0 && (
-                            <button
-                                onClick={downloadErrorReport}
-                                className="flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
-                            >
-                                <Download size={16} />
-                                Download Error Report
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-3 gap-4">
-                        <div className="bg-slate-50 rounded-xl p-4">
-                            <div className="text-slate-500 text-sm">Total Processed</div>
-                            <div className="text-2xl font-bold text-slate-900 mt-1">
-                                {importResults.totalProcessed}
-                            </div>
-                        </div>
-                        
-                        <div className="bg-green-50 rounded-xl p-4">
-                            <div className="flex items-center gap-2 text-green-700 text-sm">
-                                <CheckCircle size={16} />
-                                Successful
-                            </div>
-                            <div className="text-2xl font-bold text-green-700 mt-1">
-                                {importResults.successCount}
-                            </div>
-                        </div>
-                        
-                        <div className="bg-red-50 rounded-xl p-4">
-                            <div className="flex items-center gap-2 text-red-700 text-sm">
-                                <AlertCircle size={16} />
-                                Failed
-                            </div>
-                            <div className="text-2xl font-bold text-red-700 mt-1">
-                                {importResults.errorCount}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Error Details Table */}
-                    {importResults.errors.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-sm font-semibold text-slate-700 mb-3">
-                                Failed Records ({importResults.errors.length})
-                            </h3>
-                            <div className="border border-slate-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
-                                <table className="w-full">
-                                    <thead className="bg-slate-50 sticky top-0">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                                Row
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                                Product ID
-                                            </th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                                Error
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-slate-200">
-                                        {importResults.errors.map((err, idx) => (
-                                            <tr key={idx} className="hover:bg-slate-50">
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-900">
-                                                    {err.rowNumber || 'N/A'}
-                                                </td>
-                                                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900">
-                                                    {err.productId}
-                                                </td>
-                                                <td className="px-4 py-3 text-sm text-red-600">
-                                                    {err.error}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-        
-        <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center space-y-4 hover:border-emerald-300 transition-colors">
-            <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-                <Plus className='w-8 h-8' strokeWidth={1.5}/>
-            </div>
-            
-            <div className="text-center">
-            <label className="cursor-pointer">
-                <span className="text-emerald-600 font-medium hover:underline">Click to upload</span>
-                <input type="file" accept=".csv" className="hidden" onChange={handleFileChange} />
-                <span className="text-slate-400 text-sm block mt-1">or drag and drop your CSV file here</span>
-            </label>
-            </div>
-
-            {file && (
-            <div className="mt-4 p-3 bg-slate-50 rounded-xl flex items-center space-x-3">
-                <span className="text-sm text-slate-600 font-medium">{file.name}</span>
-                <button onClick={() => setFile(null)} className="text-slate-400 hover:text-red-500">×</button>
-            </div>
-            )}
-        </div>
-
-        <button
-            onClick={handleImport}
-            disabled={!file || isUploading}
-            className="w-full py-4 bg-slate-900 text-white rounded-2xl font-medium hover:bg-slate-800 disabled:opacity-50 transition-all"
+        <div
+            className="max-w-4xl mx-auto space-y-8"
+            style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
         >
-            {isUploading ? 'Processing Data...' : 'Start Import'}
-        </button>
+            {/* ── Upload Progress Modal ── */}
+            <AnimatePresence>
+                {isUploading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center"
+                        style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.45)' }}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                            className={`p-8 rounded-2xl shadow-2xl border max-w-sm w-full mx-4 space-y-6 ${
+                                isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
+                            }`}
+                        >
+                            {/* Spinning icon */}
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                                className="w-16 h-16 bg-linear-to-br from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-emerald-600/30"
+                            >
+                                <Upload className="w-8 h-8 text-white" />
+                            </motion.div>
 
+                            <div className="text-center space-y-1">
+                                <h3 className={`font-bold text-xl ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+                                    Importing Data…
+                                </h3>
+                                {currentChunkInfo ? (
+                                    <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                                        Rows{' '}
+                                        <span className="font-semibold text-emerald-600">
+                                            {currentChunkInfo.start}–{currentChunkInfo.end}
+                                        </span>{' '}
+                                        of{' '}
+                                        <span className="font-semibold">{currentChunkInfo.total}</span>
+                                    </p>
+                                ) : (
+                                    <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                                        Please stay on this page
+                                    </p>
+                                )}
+                            </div>
 
+                            {/* Progress bar */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className={`font-bold tabular-nums ${isDark ? 'text-stone-300' : 'text-stone-700'}`}>
+                                        {displayProgress}%
+                                    </span>
+                                    <span className={isDark ? 'text-stone-500' : 'text-stone-400'}>Processing…</span>
+                                </div>
+                                <div className={`h-3 rounded-full overflow-hidden ${isDark ? 'bg-stone-800' : 'bg-stone-100'}`}>
+                                    <motion.div
+                                        className="h-full bg-linear-to-r from-emerald-500 to-emerald-400 rounded-full"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${displayProgress}%` }}
+                                        transition={{ duration: 0.3 }}
+                                    />
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
+            {/* ── Danger Modal ── */}
+            <DangerModal
+                isOpen={dangerModalOpen}
+                isDark={isDark}
+                title="Reset Database"
+                description="This will permanently delete ALL products, transactions, shipments, FX rates, and metrics. User accounts will NOT be affected. This action cannot be undone."
+                confirmWord="DELETE"
+                confirmLabel="Reset Database"
+                isLoading={isResetting}
+                onConfirm={handleReset}
+                onCancel={() => setDangerModalOpen(false)}
+            />
 
-        <div className="mt-8 border-2 border-red-200 bg-red-50 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-red-900 mb-2 flex items-center gap-2">
-                <TriangleAlert size={22}/> Danger Zone
-            </h3>
-            <p className="text-sm text-red-700 mb-4">This will permanently delete all inventory data (products, transactions, shipments, FX rates, metrics). <br /> <strong>User accounts are Not affected.</strong></p>
-            <button
-                onClick={handleReset}
-                disabled={isResetting || isUploading}
-                className='px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors'
-            >{isResetting? "Resetting..." : "Reset Database"}</button>
-        </div>
+            {/* ── Page content (staggered) ── */}
+            <motion.div
+                variants={container}
+                initial="hidden"
+                animate="show"
+                className="space-y-8"
+            >
+                {/* Header */}
+                <motion.header variants={item}>
+                    <p className={`text-xs font-mono uppercase tracking-widest mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
+                        Data Management
+                    </p>
+                    <h1
+                        className={`text-3xl font-black tracking-tight ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
+                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
+                    >
+                        Import Inventory
+                    </h1>
+                    <p className={`text-sm mt-2 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                        Upload your distribution CSV to sync stock levels across the system.
+                    </p>
+                </motion.header>
+
+                {/* Import Results */}
+                <AnimatePresence>
+                    {importResults && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                            className={`border rounded-2xl p-6 space-y-6 shadow-sm ${
+                                isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-stone-200'
+                            }`}
+                        >
+                            {/* Results header */}
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-emerald-950' : 'bg-emerald-50'}`}>
+                                        <Sparkles className="w-5 h-5 text-emerald-600" />
+                                    </div>
+                                    <h2 className={`text-xl font-bold ${isDark ? 'text-stone-100' : 'text-stone-900'}`}>
+                                        Import Results
+                                    </h2>
+                                </div>
+                                {importResults.errorCount > 0 && (
+                                    <motion.button
+                                        whileHover={{ scale: 1.04 }}
+                                        whileTap={{ scale: 0.96 }}
+                                        onClick={downloadErrorReport}
+                                        className="flex items-center gap-2 px-4 py-2 bg-rose-100 text-rose-700 hover:bg-rose-200 rounded-lg font-medium text-sm transition-colors"
+                                    >
+                                        <Download className="w-4 h-4" />
+                                        Download Error Report
+                                    </motion.button>
+                                )}
+                            </div>
+
+                            {/* Summary cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {[
+                                    {
+                                        label: 'Total Processed',
+                                        value: importResults.totalProcessed,
+                                        delay: 0.1,
+                                        color: isDark ? 'bg-stone-800 border-stone-700' : 'bg-stone-50 border-stone-200',
+                                        text: isDark ? 'text-stone-100' : 'text-stone-900',
+                                    },
+                                    {
+                                        label: 'Successful',
+                                        value: importResults.successCount,
+                                        icon: <CheckCircle className="w-4 h-4" />,
+                                        delay: 0.2,
+                                        color: isDark ? 'bg-emerald-950 border-emerald-800' : 'bg-emerald-50 border-emerald-200',
+                                        text: 'text-emerald-600',
+                                    },
+                                    {
+                                        label: 'Failed',
+                                        value: importResults.errorCount,
+                                        icon: <AlertCircle className="w-4 h-4" />,
+                                        delay: 0.3,
+                                        color: isDark ? 'bg-rose-950 border-rose-800' : 'bg-rose-50 border-rose-200',
+                                        text: 'text-rose-600',
+                                    },
+                                ].map(({ label, value, icon, delay, color, text }) => (
+                                    <motion.div
+                                        key={label}
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        transition={{ delay, type: 'spring', stiffness: 200 }}
+                                        className={`rounded-xl p-5 border ${color}`}
+                                    >
+                                        {icon && (
+                                            <div className={`flex items-center gap-2 text-sm font-medium mb-1 ${text}`}>
+                                                {icon}
+                                                {label}
+                                            </div>
+                                        )}
+                                        {!icon && (
+                                            <div className={`text-sm font-medium mb-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                                                {label}
+                                            </div>
+                                        )}
+                                        <div className={`text-3xl font-black tracking-tight ${text}`}>
+                                            {value}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            {/* Error table */}
+                            {importResults.errors.length > 0 && (
+                                <div>
+                                    <h3 className={`text-xs font-bold uppercase tracking-widest mb-3 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                                        Failed Records ({importResults.errors.length})
+                                    </h3>
+                                    <div className={`border rounded-xl overflow-hidden max-h-80 overflow-y-auto ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
+                                        <table className="w-full text-sm">
+                                            <thead className={`sticky top-0 ${isDark ? 'bg-stone-800' : 'bg-stone-50'}`}>
+                                                <tr>
+                                                    {['Row', 'Product ID', 'Error'].map((h) => (
+                                                        <th
+                                                            key={h}
+                                                            className={`px-4 py-3 text-left text-xs font-bold uppercase tracking-wider ${isDark ? 'text-stone-300' : 'text-stone-600'}`}
+                                                        >
+                                                            {h}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className={`divide-y ${isDark ? 'divide-stone-800 bg-stone-900' : 'divide-stone-100 bg-white'}`}>
+                                                {importResults.errors.map((err, idx) => (
+                                                    <tr key={idx} className={`transition-colors ${isDark ? 'hover:bg-stone-800' : 'hover:bg-stone-50'}`}>
+                                                        <td className={`px-4 py-3 font-mono ${isDark ? 'text-stone-300' : 'text-stone-700'}`}>
+                                                            {err.rowNumber ?? 'N/A'}
+                                                        </td>
+                                                        <td className={`px-4 py-3 font-mono font-medium ${isDark ? 'text-stone-200' : 'text-stone-900'}`}>
+                                                            {err.productId}
+                                                        </td>
+                                                        <td className="px-4 py-3 text-rose-500">{err.error}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* File Upload Area */}
+                <motion.div variants={item}>
+                    <motion.div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        animate={isDragging ? { scale: 1.01 } : { scale: 1 }}
+                        transition={{ duration: 0.15 }}
+                        className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center space-y-5 transition-colors ${
+                            isDragging
+                                ? isDark
+                                    ? 'border-emerald-500 bg-emerald-950/40'
+                                    : 'border-emerald-500 bg-emerald-50'
+                                : isDark
+                                ? 'border-stone-700 bg-stone-900 hover:border-emerald-600'
+                                : 'border-stone-300 bg-white hover:border-emerald-400'
+                        }`}
+                    >
+                        {/* Icon with idle pulse */}
+                        <motion.div
+                            animate={isDragging
+                                ? { scale: 1.15 }
+                                : file
+                                ? { scale: 1 }
+                                : { scale: [1, 1.05, 1] }
+                            }
+                            transition={!isDragging && !file
+                                ? { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }
+                                : { duration: 0.2 }
+                            }
+                            className={`w-20 h-20 rounded-full flex items-center justify-center ${
+                                isDragging
+                                    ? 'bg-emerald-500'
+                                    : isDark
+                                    ? 'bg-emerald-950'
+                                    : 'bg-emerald-50'
+                            }`}
+                        >
+                            <FileText
+                                className={`w-10 h-10 ${isDragging ? 'text-white' : 'text-emerald-600'}`}
+                                strokeWidth={1.5}
+                            />
+                        </motion.div>
+
+                        {/* Upload label */}
+                        <div className="text-center">
+                            <label className="cursor-pointer">
+                                <span className="text-emerald-600 font-semibold text-lg hover:underline">
+                                    Click to upload
+                                </span>
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    className="hidden"
+                                    onChange={handleFileChange}
+                                    disabled={isUploading}
+                                />
+                                <span className={`block text-sm mt-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
+                                    or drag and drop your CSV file here
+                                </span>
+                            </label>
+                        </div>
+
+                        {/* Constraints hint */}
+                        <div className={`flex items-center gap-4 text-xs ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
+                            <span className="flex items-center gap-1">
+                                <Info className="w-3.5 h-3.5" /> CSV only
+                            </span>
+                            <span>·</span>
+                            <span>5 MB recommended max</span>
+                            <span>·</span>
+                            <span>Up to 10,000 rows</span>
+                        </div>
+
+                        {/* Template download */}
+                        <button
+                            onClick={downloadTemplateCsv}
+                            className={`flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${
+                                isDark
+                                    ? 'text-stone-400 hover:text-stone-200 hover:bg-stone-800'
+                                    : 'text-stone-500 hover:text-stone-700 hover:bg-stone-100'
+                            }`}
+                        >
+                            <Table2 className="w-3.5 h-3.5" />
+                            Download CSV template
+                        </button>
+
+                        {/* Selected file chip */}
+                        <AnimatePresence>
+                            {file && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 6 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${
+                                        isDark
+                                            ? 'bg-emerald-950 border-emerald-800'
+                                            : 'bg-emerald-50 border-emerald-200'
+                                    }`}
+                                >
+                                    <FileText className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    <span className={`text-sm font-medium ${isDark ? 'text-stone-200' : 'text-stone-700'}`}>
+                                        {file.name}
+                                    </span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-md font-mono ${isDark ? 'bg-stone-800 text-stone-400' : 'bg-stone-100 text-stone-500'}`}>
+                                        {formatBytes(file.size)}
+                                    </span>
+                                    <button
+                                        onClick={() => setFile(null)}
+                                        className={`ml-auto transition-colors ${isDark ? 'text-stone-500 hover:text-rose-400' : 'text-stone-400 hover:text-rose-500'}`}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+                </motion.div>
+
+                {/* Import Button */}
+                <motion.div variants={item}>
+                    <motion.button
+                        whileHover={{ scale: file && !isUploading ? 1.02 : 1 }}
+                        whileTap={{ scale: file && !isUploading ? 0.98 : 1 }}
+                        onClick={handleImport}
+                        disabled={!file || isUploading}
+                        className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold text-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
+                    >
+                        {isUploading ? (
+                            <>
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                                />
+                                Processing Data…
+                            </>
+                        ) : (
+                            <>
+                                <Upload className="w-5 h-5" />
+                                Start Import
+                            </>
+                        )}
+                    </motion.button>
+                </motion.div>
+
+                {/* Danger Zone */}
+                <motion.div
+                    variants={item}
+                    className={`border-2 rounded-xl p-6 ${isDark ? 'border-rose-900 bg-rose-950/20' : 'border-rose-200 bg-rose-50'}`}
+                >
+                    <h3 className={`text-base font-bold mb-1 flex items-center gap-2 ${isDark ? 'text-rose-400' : 'text-rose-800'}`}>
+                        <TriangleAlert className="w-5 h-5" />
+                        Danger Zone
+                    </h3>
+                    <p className={`text-sm mb-4 ${isDark ? 'text-rose-400/80' : 'text-rose-700'}`}>
+                        Permanently deletes all inventory data — products, transactions, shipments, FX rates and metrics.{' '}
+                        <strong>User accounts are NOT affected.</strong>
+                    </p>
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        onClick={() => setDangerModalOpen(true)}
+                        disabled={isUploading}
+                        className="px-5 py-2.5 bg-rose-600 text-white rounded-lg font-semibold text-sm hover:bg-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        Reset Database
+                    </motion.button>
+                </motion.div>
+            </motion.div>
         </div>
     );
 }
