@@ -268,7 +268,6 @@ export default function ImportPage() {
         show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
     };
 
-    // ── render ────────────────────────────────────────────────────────────────
     return (
         <div
             className="max-w-4xl mx-auto space-y-8"
@@ -365,7 +364,10 @@ export default function ImportPage() {
                 className="space-y-8"
             >
                 {/* Header */}
-                <motion.header variants={item}>
+                <motion.header variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+                }}>
                     <p className={`text-xs font-mono uppercase tracking-widest mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                         Data Management
                     </p>
@@ -509,7 +511,10 @@ export default function ImportPage() {
                 </AnimatePresence>
 
                 {/* File Upload Area */}
-                <motion.div variants={item}>
+                <motion.div variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+                }}>
                     <motion.div
                         onDragOver={handleDragOver}
                         onDragLeave={handleDragLeave}
@@ -628,7 +633,10 @@ export default function ImportPage() {
                 </motion.div>
 
                 {/* Import Button */}
-                <motion.div variants={item}>
+                <motion.div variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+                }}>
                     <motion.button
                         whileHover={{ scale: file && !isUploading ? 1.02 : 1 }}
                         whileTap={{ scale: file && !isUploading ? 0.98 : 1 }}
@@ -656,7 +664,10 @@ export default function ImportPage() {
 
                 {/* Danger Zone */}
                 <motion.div
-                    variants={item}
+                    variants={{
+                        hidden: { opacity: 0, y: 20 },
+                        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } } 
+                    }}
                     className={`border-2 rounded-xl p-6 ${isDark ? 'border-rose-900 bg-rose-950/20' : 'border-rose-200 bg-rose-50'}`}
                 >
                     <h3 className={`text-base font-bold mb-1 flex items-center gap-2 ${isDark ? 'text-rose-400' : 'text-rose-800'}`}>
