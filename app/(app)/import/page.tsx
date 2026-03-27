@@ -12,6 +12,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import DangerModal from '../components/DangerModal';
+import { useDarkMode } from '../components/DarkModeContext';
 
 type ImportError = {
     productId: string;
@@ -19,7 +20,6 @@ type ImportError = {
     rowNumber?: number;
 };
 
-// ── helpers ──────────────────────────────────────────────────────────────────
 
 function formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
@@ -45,11 +45,9 @@ function downloadTemplateCsv() {
     toast.success('Template downloaded!');
 }
 
-// ── component ─────────────────────────────────────────────────────────────────
 
 export default function ImportPage() {
-    const [isDark, setIsDark] = useState(false);
-
+    const { isDark } = useDarkMode();
     const [file, setFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -67,17 +65,7 @@ export default function ImportPage() {
     const [dangerModalOpen, setDangerModalOpen] = useState(false);
     const [isResetting, setIsResetting] = useState(false);
 
-    // ── sync dark mode from localStorage (matches DashboardShell) ──
-    useEffect(() => {
-        const saved = localStorage.getItem('darkMode');
-        if (saved !== null) setIsDark(saved === 'true');
 
-        const onStorage = (e: StorageEvent) => {
-            if (e.key === 'darkMode') setIsDark(e.newValue === 'true');
-        };
-        window.addEventListener('storage', onStorage);
-        return () => window.removeEventListener('storage', onStorage);
-    }, []);
 
     // ── smooth progress animation ──
     useEffect(() => {
