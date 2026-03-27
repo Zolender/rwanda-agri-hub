@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { Search, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { useDarkMode } from '@/app/(app)/components/DarkModeContext';
 
 interface Product {
     id: string;
@@ -24,6 +25,7 @@ interface Product {
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [searchTerm, setSearchTerm] = useState(searchParams.get('query') || '');
+    const { isDark } = useDarkMode();
 
     // This handles the URL synchronization for searching
     const handleSearch = (term: string) => {
@@ -47,7 +49,7 @@ interface Product {
         <div className="space-y-4">
         {/* Search Bar */}
         <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search className={`absolute left-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-stone-400' : 'text-slate-400'}`} size={18} />
             <input
             type="text"
             placeholder="Search by ID or Category..."
@@ -56,34 +58,38 @@ interface Product {
                 setSearchTerm(e.target.value);
                 handleSearch(e.target.value);
             }}
-            className="w-full pl-10 pr-4 py-3 text-slate-700 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+            className={`w-full pl-10 pr-4 py-3 border rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all ${
+                isDark
+                    ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                    : 'text-slate-700 bg-white border-slate-200'
+            }`}
             />
         </div>
 
         {/* Table Section */}
-        <div className="bg-white border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+        <div className={`border rounded-3xl overflow-hidden shadow-sm ${isDark ? 'bg-stone-900 border-stone-800' : 'bg-white border-slate-100'}`}>
             <table className="w-full text-left border-collapse">
             <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Product ID</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Current Stock</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Price (RWF)</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Status</th>
+                <tr className={`border-b ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-slate-50/50 border-slate-100'}`}>
+                <th className={`px-6 py-4 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>Product ID</th>
+                <th className={`px-6 py-4 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>Category</th>
+                <th className={`px-6 py-4 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>Current Stock</th>
+                <th className={`px-6 py-4 text-xs font-bold uppercase tracking-wider ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>Price (RWF)</th>
+                <th className={`px-6 py-4 text-xs font-bold uppercase tracking-wider text-right ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>Status</th>
                 </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody className={`divide-y ${isDark ? 'divide-stone-800' : 'divide-slate-50'}`}>
                 {initialData.map((item) => {
                 const isLowStock = item.quantity <= item.reorderPointUnits;
                 
                 return (
-                    <tr key={item.id} className="hover:bg-slate-50/50 transition-colors group">
-                    <td className="px-6 py-4 font-medium text-slate-700">{item.id}</td>
-                    <td className="px-6 py-4 text-slate-500">{item.categoryId}</td>
-                    <td className="px-6 py-4 text-slate-600">
-                        {item.quantity} <span className="text-xs text-slate-400">{item.unitOfMeasure}</span>
+                    <tr key={item.id} className={`transition-colors group ${isDark ? 'hover:bg-stone-800/50' : 'hover:bg-slate-50/50'}`}>
+                    <td className={`px-6 py-4 font-medium ${isDark ? 'text-stone-300' : 'text-slate-700'}`}>{item.id}</td>
+                    <td className={`px-6 py-4 ${isDark ? 'text-stone-400' : 'text-slate-500'}`}>{item.categoryId}</td>
+                    <td className={`px-6 py-4 ${isDark ? 'text-stone-300' : 'text-slate-600'}`}>
+                        {item.quantity} <span className={`text-xs ${isDark ? 'text-stone-500' : 'text-slate-400'}`}>{item.unitOfMeasure}</span>
                     </td>
-                    <td className="px-6 py-4 font-mono text-slate-600">
+                    <td className={`px-6 py-4 font-mono ${isDark ? 'text-stone-300' : 'text-slate-600'}`}>
                         {item.sellingPriceRwf.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -107,21 +113,21 @@ interface Product {
 
         {/* Pagination Controls */}
         <div className="flex items-center justify-between px-2 py-4">
-            <p className="text-sm text-slate-500">
-            Page <span className="font-bold text-slate-800">{currentPage}</span> of {totalPages}
+            <p className={`text-sm ${isDark ? 'text-stone-400' : 'text-slate-500'}`}>
+            Page <span className={`font-bold ${isDark ? 'text-stone-200' : 'text-slate-800'}`}>{currentPage}</span> of {totalPages}
             </p>
             <div className="flex space-x-2">
             <button
                 disabled={currentPage <= 1}
                 onClick={() => changePage(currentPage - 1)}
-                className="p-2 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all"
+                className={`p-2 border rounded-xl disabled:opacity-30 transition-all ${isDark ? 'border-stone-700 hover:bg-stone-800' : 'border-slate-200 hover:bg-white'}`}
             >
                 <ChevronLeft size={20} />
             </button>
             <button
                 disabled={currentPage >= totalPages}
                 onClick={() => changePage(currentPage + 1)}
-                className="p-2 border border-slate-200 rounded-xl hover:bg-white disabled:opacity-30 transition-all"
+                className={`p-2 border rounded-xl disabled:opacity-30 transition-all ${isDark ? 'border-stone-700 hover:bg-stone-800' : 'border-slate-200 hover:bg-white'}`}
             >
                 <ChevronRight size={20} />
             </button>
