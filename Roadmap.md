@@ -1,7 +1,7 @@
 # Rwanda Agri-Hub: Development Roadmap
 
-> **Status:** Phase 1 (Foundation) → 70% Complete  
-> **Last Updated:** 2026-03-21
+> **Status:** Phase 1 Complete → Phase 2 In Progress  
+> **Last Updated:** 2026-03-28
 
 ---
 
@@ -23,7 +23,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Edge Runtime compatibility (split auth config)
 - [x] Database singleton pattern (Prisma 7 adapter)
 
-### Recent Additions (2026-03-22) 
+### Recent Additions (2026-03-22)
 - [x] Environment setup documentation (.env.example)
 - [x] Comprehensive development roadmap (ROADMAP.md)
 - [x] Testing infrastructure (Vitest)
@@ -33,8 +33,8 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Public/protected route separation
 - [x] Landing page with dynamic auth state
 - [x] Middleware configuration for public routes
-  
-### Recent Additions (2026-03-25) 
+
+### Recent Additions (2026-03-25)
 - [x] Last import timestamp on dashboard
 - [x] Error boundaries (error.tsx)
 - [x] Loading skeletons (loading.tsx)
@@ -42,7 +42,20 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Empty states for stock table
 - [x] Dashboard header as client component
 
-### Challenges Solved (16 total)
+### Recent Additions (2026-03-28)
+- [x] Transaction / stock row detail modal (ProductDetailModal) with role-gated editing
+- [x] StockOnHandTable wired with click-to-open modal + userRole prop
+- [x] updateProductAction used from modal (MANAGER/ADMIN only, ANALYST read-only)
+- [x] Admin User Management page (`/admin/users`)
+- [x] Server actions for user CRUD: createUserAction, updateUserRoleAction, deleteUserAction
+- [x] UsersTable with role badges, initials avatar, self-protection on action buttons
+- [x] CreateUserModal — bcrypt hashed password, duplicate email guard
+- [x] EditRoleModal — live role description, disabled Save when no change
+- [x] DangerModal reused for delete confirmation
+- [x] AdminPageHeader component (client, dark-mode aware, consistent with app style)
+- [x] Clean URL via `(users)` route group (`/admin/users` not `/admin/users/users`)
+
+### Challenges Solved (18 total)
 - [x] Prisma v7 driver adapter configuration
 - [x] Edge Runtime crypto module compatibility
 - [x] Database seeding in Prisma 7
@@ -57,6 +70,10 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] 1MB payload limit (client-side chunking)
 - [x] Prisma transaction timeout (Promise.all instead)
 - [x] Navigation protection during import
+- [x] Server vs client component boundary for dark mode (AdminPageHeader pattern)
+- [x] Self-protection guards in admin actions (can't delete/demote own account)
+- [x] `emailVerified` not populated for Credentials users — column removed, noted for future OAuth
+- [x] `useTransition` for server action calls without blocking UI (spinner pattern)
 
 ---
 
@@ -77,10 +94,10 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add pre-commit hooks (Husky + lint-staged)
 
 ### 1.3 Project Structure Refactoring
-- [x] Refactor `app/app/` → `app/(dashboard)/` route group
+- [x] Refactor `app/app/` → `app/(app)/` route group
 - [x] Refactor `app/login/` → `app/(public)/login/`
 - [x] Create `app/(public)/page.tsx` (landing page)
-- [ ] Organize components into feature folders
+- [x] Organize components into feature folders (`dashboard/`, `admin/`, `transactions/`, `import/`)
 - [ ] Move shared utilities to `lib/utils/`
 - [ ] Create `lib/schemas/` for Zod schemas
 
@@ -99,25 +116,23 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Add search/filter functionality
 - [x] Add "low stock alerts" section
 - [x] Add last import timestamp
-- [ ] Add role-based dashboard views
-- [ ] Add "low stock alerts" section
+- [x] Add role-based dashboard views (ProductDetailModal gates Edit to MANAGER/ADMIN)
 
 ### 1.6 Transactions Page
-- [x] Basic page structure + table 
-- [x] Server-side pagination 
-- [x] Implement date range filter  
-- [x] Implement movement type filter  
-- [x] Implement region filter  
-- [x] Add product search  
+- [x] Basic page structure + table
+- [x] Server-side pagination
+- [x] Implement date range filter
+- [x] Implement movement type filter
+- [x] Implement region filter
+- [x] Add product search
+- [x] Transaction row detail modal (ProductDetailModal, role-gated)
 - [ ] Add CSV export functionality (API route needed)
-- [ ] Add transaction details modal (Phase 2)
 
 ---
 
 ## 🔧 Phase 2: Production Readiness
 
 ### 2.1 Error Handling & Logging
-- [ ] Add error boundaries (React Error Boundary)
 - [ ] Add structured logging (Winston or Pino)
 - [ ] Add error tracking (Sentry integration)
 - [ ] Improve Server Action error messages
@@ -128,7 +143,6 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add database indexes (products, transactions)
 - [ ] Analyze slow queries (EXPLAIN ANALYZE)
 - [ ] Implement React.lazy for code splitting
-- [ ] Add image optimization (if needed later)
 - [ ] Add caching strategy (React Cache)
 - [ ] Optimize bundle size (analyze with webpack-bundle-analyzer)
 
@@ -140,12 +154,12 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add password strength requirements
 - [ ] Add 2FA support (optional, future)
 
-### 2.4 User Management (Admin Only)
-- [ ] Create `/admin` route (ADMIN role only)
-- [ ] Add user listing page
-- [ ] Add "create user" form
-- [ ] Add "edit user" form (change role, deactivate)
-- [ ] Add "delete user" confirmation
+### 2.4 User Management (Admin Only) ✅ COMPLETE
+- [x] Create `/admin/users` route (ADMIN role only)
+- [x] Add user listing page with role badges
+- [x] Add "create user" form (name, email, password, role)
+- [x] Add "edit user role" modal (promote/demote between roles)
+- [x] Add "delete user" confirmation (DangerModal reused)
 - [ ] Add user activity logs
 
 ### 2.5 Deployment
@@ -229,7 +243,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Auth helper functions (role checks)
 
 ### Integration Tests
-- [ ] Server Actions (import, product CRUD)
+- [ ] Server Actions (import, product CRUD, user CRUD)
 - [ ] Database queries (Prisma operations)
 - [ ] API routes (if any)
 
@@ -239,6 +253,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] CSV import flow (error handling)
 - [ ] Dashboard navigation
 - [ ] Transaction filtering
+- [ ] Product detail modal (role-gated edit)
 - [ ] User management (Admin)
 
 ### Performance Tests
@@ -284,7 +299,6 @@ The project is considered **production-ready** when:
 - Database backups configured
 - Monitoring/alerting set up
 
-
 ---
 
 ## 📅 Progress Log
@@ -303,12 +317,6 @@ The project is considered **production-ready** when:
 - ✅ Created landing page with auth-aware UI
 - ✅ Configured middleware for public/protected routes
 
-**Next Session Priority:**
-- [ ] Add "partial success" UI to import (show which products failed)
-- [ ] Add download error report button
-- [ ] Write Server Action integration tests
-- [ ] Move login to `(public)` group for consistency
-
 **Time Invested:** ~2-3 hours  
 **Tests Passing:** 3/3 ✅  
 **Build Status:** ✅ Working  
@@ -326,26 +334,48 @@ The project is considered **production-ready** when:
 - ✅ Created transactions page with basic table + pagination
 - ✅ Added empty states for better UX
 
-**Next Session Priority:**
-- [ ] Build FiltersBar component for transactions (client component)
-- [ ] Add date range filter
-- [ ] Add movement type + region filters
-- [ ] Add product search
-
 **Time Invested:** ~2 hours  
 **Phase 1 Progress:** ~85% complete  
 **Build Status:** ✅ Working  
 **Deployment Status:** Local dev only
 
+### 2026-03-28 (Checkpoint 3)
+**Focus:** Role-Gated Detail Modal (Task 3) + Admin User Management (Task 4)
+
+**Completed:**
+- ✅ `ProductDetailModal` — click any stock row → modal with full product details
+- ✅ Role-gated editing in modal: MANAGER/ADMIN see edit form, ANALYST sees read-only
+- ✅ `StockOnHandTable` updated — click handler, `userRole` prop, modal mounted inside
+- ✅ `app/lib/actions/admin.ts` — `createUserAction`, `updateUserRoleAction`, `deleteUserAction` with self-protection guards
+- ✅ `app/(app)/admin/(users)/page.tsx` — server component, ADMIN-only guard, clean URL via route group
+- ✅ `UsersTable` — role badges (colour-coded), initials avatar, action buttons disabled on own row
+- ✅ `CreateUserModal` — bcrypt hashing, P2002 duplicate email guard, auto-close on success
+- ✅ `EditRoleModal` — seeds current role on open, live role descriptions, Save disabled if no change
+- ✅ `AdminPageHeader` — client component, dark-mode aware, consistent typography with rest of app
+- ✅ `DangerModal` reused as-is for delete confirmation
+
+**Key patterns learned:**
+- `useTransition` + server actions for non-blocking UI with spinner
+- `null` state as open/closed signal for modals (vs separate boolean)
+- Server components compose client ones — never the reverse
+- `requireAdmin()` shared guard to keep server actions DRY
+- `emailVerified` not set for Credentials-based auth — skip until OAuth is added
+
+**Time Invested:** ~3 hours  
+**Phase 1 Progress:** ✅ 100% complete  
+**Phase 2 Progress:** 2.4 User Management ✅ complete  
+**Build Status:** ✅ Working  
+**Deployment Status:** Local dev only
+
 ## 📝 Notes
 
-- Keep updating this roadmap as I complete tasks
+- Keep updating this roadmap as tasks complete
 - Move completed items to "Completed" section
 - Add new discoveries to "Challenges Solved"
 - Celebrate small wins! 🎉
 
 ---
 
-**Version:** 1.0  
+**Version:** 1.3  
 **Maintainer:** @Zolender  
 **License:** MIT
