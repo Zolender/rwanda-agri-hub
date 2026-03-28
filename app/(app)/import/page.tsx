@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import DangerModal from '../components/DangerModal';
 import { useDarkMode } from '../components/DarkModeContext';
+import ImportPageHeader from '../components/import/importPageHearder';
 
 type ImportError = {
     productId: string;
@@ -261,6 +262,7 @@ export default function ImportPage() {
             className="max-w-4xl mx-auto space-y-8"
             style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
         >
+            <ImportPageHeader />
             {/* ── Upload Progress Modal ── */}
             <AnimatePresence>
                 {isUploading && (
@@ -351,24 +353,7 @@ export default function ImportPage() {
                 animate="show"
                 className="space-y-8"
             >
-                {/* Header */}
-                <motion.header variants={{
-                    hidden: { opacity: 0, y: 20 },
-                    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
-                }}>
-                    <p className={`text-xs font-mono uppercase tracking-widest mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                        Data Management
-                    </p>
-                    <h1
-                        className={`text-3xl font-black tracking-tight ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
-                        style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
-                    >
-                        Import Inventory
-                    </h1>
-                    <p className={`text-sm mt-2 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
-                        Upload your distribution CSV to sync stock levels across the system.
-                    </p>
-                </motion.header>
+                
 
                 {/* Import Results */}
                 <AnimatePresence>
