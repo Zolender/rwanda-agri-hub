@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { 
     LayoutDashboard, 
@@ -15,28 +15,28 @@ import {
     ChevronRight
 } from 'lucide-react';
 
-export default function SidebarNav({ isDark }: { isDark: boolean }) {
+type Role = 'ADMIN' | 'MANAGER' | 'ANALYST';
+
+export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Role }) {
     const pathname = usePathname();
-    const { data: session } = useSession();
-    const role = session?.user?.role;
 
     const navItems = [
-        { name: 'Dashboard',    href: '/dashboard',       icon: LayoutDashboard, minRole: 'ANALYST'  },
-        { name: 'Transactions', href: '/transactions',    icon: History,         minRole: 'ANALYST'  },
-        { name: 'Record Sale',  href: '/dashboard/sale',  icon: ShoppingBag,     minRole: 'ANALYST'  },
-        { name: 'Receive Stock',href: '/dashboard/add',   icon: PackagePlus,     minRole: 'MANAGER'  },
-        { name: 'Import Data',  href: '/import',          icon: FileUp,          minRole: 'MANAGER'  },
-        { name: 'Admin',        href: '/admin',           icon: ShieldCheck,     minRole: 'ADMIN'    },
+        { name: 'Dashboard',     href: '/dashboard',      icon: LayoutDashboard, minRole: 'ANALYST'  },
+        { name: 'Transactions',  href: '/transactions',   icon: History,         minRole: 'ANALYST'  },
+        { name: 'Record Sale',   href: '/dashboard/sale', icon: ShoppingBag,     minRole: 'ANALYST'  },
+        { name: 'Receive Stock', href: '/dashboard/add',  icon: PackagePlus,     minRole: 'MANAGER'  },
+        { name: 'Import Data',   href: '/import',         icon: FileUp,          minRole: 'MANAGER'  },
+        { name: 'Admin',         href: '/admin',          icon: ShieldCheck,     minRole: 'ADMIN'    },
     ];
 
     const filteredItems = navItems.filter((item) => {
         if (item.minRole === 'ADMIN')   return role === 'ADMIN';
         if (item.minRole === 'MANAGER') return role === 'ADMIN' || role === 'MANAGER';
-        return true; 
+        return true;
     });
 
     return (
-        <div className='flex flex-col h-full justify-between'> 
+        <div className='flex flex-col h-full justify-between'>
             <nav className="space-y-1 px-3 py-4">
                 {filteredItems.map((item, index) => {
                     const Icon = item.icon;
@@ -69,25 +69,13 @@ export default function SidebarNav({ isDark }: { isDark: boolean }) {
                                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                                     />
                                 )}
-
                                 <div className="flex items-center gap-3 relative z-10">
-                                    <motion.div
-                                        whileHover={{ scale: 1.1 }}
-                                        transition={{ type: "spring", stiffness: 400 }}
-                                    >
-                                        <Icon className="w-5 h-5" />
-                                    </motion.div>
-                                    <span className="font-semibold text-sm tracking-tight">{item.name}</span>
+                                    <Icon className="w-5 h-5 shrink-0" />
+                                    <span className="text-sm font-semibold">{item.name}</span>
                                 </div>
-
-                                {/* Arrow indicator */}
-                                <motion.div
-                                    className="relative z-10"
-                                    animate={{ x: isActive ? 0 : -4, opacity: isActive ? 1 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronRight className="w-4 h-4" />
-                                </motion.div>
+                                {isActive && (
+                                    <ChevronRight className="w-4 h-4 relative z-10 opacity-70" />
+                                )}
                             </Link>
                         </motion.div>
                     );
@@ -98,8 +86,8 @@ export default function SidebarNav({ isDark }: { isDark: boolean }) {
                 <button
                     onClick={() => signOut({ callbackUrl: '/login' })}
                     className={`
-                        w-full flex items-center gap-3 px-4 py-3 rounded-xl
-                        transition-all duration-200 text-sm font-semibold
+                        w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                        transition-colors
                         ${isDark
                             ? 'text-stone-400 hover:bg-stone-800 hover:text-rose-400'
                             : 'text-stone-500 hover:bg-rose-50 hover:text-rose-600'

@@ -6,7 +6,18 @@ import SidebarNav from '../SideBarNav';
 import { Leaf, Moon, Sun, Menu, X } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { DarkModeContext } from '../DarkModeContext';
-export default function DashboardShell({ children, session }: { children: React.ReactNode; session: any }) {
+
+export type Role = 'ADMIN' | 'MANAGER' | 'ANALYST';
+
+export default function DashboardShell({
+    children,
+    session,
+    role,
+}: {
+    children: React.ReactNode;
+    session: any;
+    role: Role;
+}) {
     const [isDark, setIsDark] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
@@ -100,7 +111,7 @@ export default function DashboardShell({ children, session }: { children: React.
 
                     {/* Navigation */}
                     <div className="flex-1 overflow-y-auto">
-                        <SidebarNav isDark={isDark} />
+                        <SidebarNav isDark={isDark} role={role} />
                     </div>
                 </aside>
 
@@ -143,7 +154,7 @@ export default function DashboardShell({ children, session }: { children: React.
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto">
-                                <SidebarNav isDark={isDark} />
+                                <SidebarNav isDark={isDark} role={role} />
                             </div>
                         </motion.aside>
                     )}
@@ -189,7 +200,6 @@ export default function DashboardShell({ children, session }: { children: React.
                         </motion.button>
                     </motion.header>
 
-                    {/* Page Content */}
                     <main className="flex-1 overflow-y-auto p-4 lg:p-8">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
