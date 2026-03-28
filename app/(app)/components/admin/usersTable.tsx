@@ -6,8 +6,9 @@ import { UserPlus, Pencil, Trash2, ShieldCheck, Users } from "lucide-react";
 import { useDarkMode } from "@/app/(app)/components/DarkModeContext";
 import { deleteUserAction } from "@/app/lib/actions/admin";
 import DangerModal from "@/app/(app)/components/DangerModal";
-import CreateUserModal from "./createUserModal";
 import EditRoleModal from "./EditRoleModal";
+import CreateUserModal from "./createUserModal";
+
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 type UserRole = "ADMIN" | "MANAGER" | "ANALYST";
@@ -17,12 +18,12 @@ type User = {
     name: string | null;
     email: string | null;
     role: UserRole;
-    createdAt: Date | null;
+    // emailVerified removed — not meaningful for credentials-based users
 };
 
 type UsersTableProps = {
     users: User[];
-    currentUserId: string;   // so we can disable actions on the current user's own row
+    currentUserId: string;
 };
 
 // ── Role badge colours ─────────────────────────────────────────────────────────
@@ -38,15 +39,13 @@ const roleBadge: Record<UserRole, string> = {
 export default function UsersTable({ users, currentUserId }: UsersTableProps) {
     const { isDark } = useDarkMode();
 
-    // ── Modal visibility state ─────────────────────────────────────────────────
-    const [showCreate, setShowCreate]           = useState(false);
-    const [editTarget, setEditTarget]           = useState<User | null>(null);  // which user is being role-edited
-    const [deleteTarget, setDeleteTarget]       = useState<User | null>(null);  // which user is queued for deletion
+    const [showCreate, setShowCreate]       = useState(false);
+    const [editTarget, setEditTarget]       = useState<User | null>(null);
+    const [deleteTarget, setDeleteTarget]   = useState<User | null>(null);
 
-    const [isPending, startTransition]          = useTransition();
-    const [deleteError, setDeleteError]         = useState<string | null>(null);
+    const [isPending, startTransition]      = useTransition();
+    const [deleteError, setDeleteError]     = useState<string | null>(null);
 
-    // ── Delete handler ─────────────────────────────────────────────────────────
     function handleDelete() {
         if (!deleteTarget) return;
         setDeleteError(null);
@@ -54,7 +53,7 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
         startTransition(async () => {
             const result = await deleteUserAction(deleteTarget.id);
             if (result.success) {
-                setDeleteTarget(null);  // close modal — table re-renders via revalidatePath
+                setDeleteTarget(null);
             } else {
                 setDeleteError(result.error ?? "Something went wrong.");
             }
@@ -87,7 +86,7 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
             {/* ── Main card ─────────────────────────────────────────────────── */}
             <div className={`rounded-2xl border shadow-sm ${isDark ? "bg-stone-900 border-stone-800" : "bg-white border-stone-200"}`}>
 
-                {/* Header row with Create button */}
+                {/* Header row */}
                 <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? "border-stone-800" : "border-stone-200"}`}>
                     <div className="flex items-center gap-2">
                         <Users className={`w-5 h-5 ${isDark ? "text-stone-400" : "text-stone-500"}`} />
@@ -104,7 +103,7 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                     </button>
                 </div>
 
-                {/* Delete error banner (shows inside the card, below the header) */}
+                {/* Delete error banner */}
                 <AnimatePresence>
                     {deleteError && (
                         <motion.div
@@ -126,8 +125,8 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                                 <th className="px-6 py-3 text-left">Name</th>
                                 <th className="px-6 py-3 text-left">Email</th>
                                 <th className="px-6 py-3 text-left">Role</th>
-                                <th className="px-6 py-3 text-left">Verified</th>
                                 <th className="px-6 py-3 text-right">Actions</th>
+                                {/* Verified column removed */}
                             </tr>
                         </thead>
                         <tbody className={`divide-y ${isDark ? "divide-stone-800" : "divide-stone-100"}`}>
@@ -141,7 +140,6 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                                         {/* Name */}
                                         <td className={`px-6 py-4 text-sm font-medium ${isDark ? "text-stone-200" : "text-stone-800"}`}>
                                             <div className="flex items-center gap-2">
-                                                {/* Avatar circle with initials */}
                                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isDark ? "bg-stone-700 text-stone-300" : "bg-stone-200 text-stone-600"}`}>
                                                     {(user.name ?? user.email ?? "?")[0].toUpperCase()}
                                                 </div>
@@ -167,20 +165,9 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                                             </span>
                                         </td>
 
-                                        {/* emailVerified as "last sign-in" proxy */}
-                                        <td className={`px-6 py-4 text-sm ${isDark ? "text-stone-400" : "text-stone-500"}`}>
-                                            {user.createdAt
-                                                ? new Date(user.createdAt).toLocaleDateString("en-US", {
-                                                    year: "numeric", month: "short", day: "numeric"
-                                                    })
-                                                : <span className="text-stone-400 italic">Never</span>
-                                            }
-                                        </td>
-
                                         {/* Actions */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-2">
-                                                {/* Edit role */}
                                                 <button
                                                     onClick={() => setEditTarget(user)}
                                                     disabled={isSelf}
@@ -196,7 +183,6 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                                                     <Pencil className="w-4 h-4" />
                                                 </button>
 
-                                                {/* Delete */}
                                                 <button
                                                     onClick={() => setDeleteTarget(user)}
                                                     disabled={isSelf}
@@ -219,7 +205,6 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
                         </tbody>
                     </table>
 
-                    {/* Empty state */}
                     {users.length === 0 && (
                         <div className={`py-16 text-center text-sm ${isDark ? "text-stone-500" : "text-stone-400"}`}>
                             No users found. Create one above.

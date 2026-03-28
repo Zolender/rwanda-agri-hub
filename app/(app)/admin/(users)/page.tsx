@@ -3,23 +3,17 @@ import { redirect } from "next/navigation";
 import prisma from "@/app/lib/db";
 import UsersTable from "../../components/admin/usersTable";
 export default async function AdminUsersPage() {
-    // ── Server-side ADMIN guard 
-    // Even though the sidebar hides this link from non-ADMINs,
-    // we ALWAYS re-check on the server. Never trust the UI alone.
     const session = await auth();
     if (!session || session.user?.role !== "ADMIN") {
         redirect("/dashboard");
     }
 
-    // ── Fetch all users 
-    // We select only what we need — no passwords ever sent to the client
     const users = await prisma.user.findMany({
         select: {
             id: true,
             name: true,
             email: true,
             role: true,
-            createdAt: true
         },
         orderBy: { name: "asc" },
     });
@@ -28,7 +22,6 @@ export default async function AdminUsersPage() {
 
     return (
         <div className="p-6 space-y-6">
-            {/* Page header */}
             <div>
                 <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-stone-100">
                     User Management
@@ -38,7 +31,6 @@ export default async function AdminUsersPage() {
                 </p>
             </div>
 
-            {/* The client component gets all data as props */}
             <UsersTable users={users} currentUserId={currentUserId} />
         </div>
     );
