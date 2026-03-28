@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/app/lib/db";
 import UsersTable from "../../components/admin/usersTable";
 export default async function AdminUsersPage() {
-    // ── Server-side ADMIN guard ────────────────────────────────────────────────
+    // ── Server-side ADMIN guard 
     // Even though the sidebar hides this link from non-ADMINs,
     // we ALWAYS re-check on the server. Never trust the UI alone.
     const session = await auth();

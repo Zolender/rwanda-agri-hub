@@ -113,6 +113,7 @@ model User {
   role          UserRole  @default(ANALYST)
   accounts      Account[]
   sessions      Session[]
+  createdAt     DateTime  @default(now())
 }
 
 model VerificationToken {
