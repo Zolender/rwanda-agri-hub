@@ -1,7 +1,9 @@
 import { auth } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/app/lib/db";
+import AdminPageHeader from "@/app/(app)/components/admin/AdminPageHeader";
 import UsersTable from "../../components/admin/usersTable";
+
 export default async function AdminUsersPage() {
     const session = await auth();
     if (!session || session.user?.role !== "ADMIN") {
@@ -21,15 +23,11 @@ export default async function AdminUsersPage() {
     const currentUserId = session.user?.id ?? "";
 
     return (
-        <div className="p-6 space-y-6">
-            <div>
-                <h1 className="text-2xl font-black tracking-tight text-stone-900 dark:text-stone-100">
-                    User Management
-                </h1>
-                <p className="mt-1 text-sm text-stone-500">
-                    Create, edit roles, and remove users. Changes take effect immediately.
-                </p>
-            </div>
+        <div className="space-y-0">
+            <AdminPageHeader
+                title="User Management"
+                description="Create, edit roles, and remove users. Changes take effect immediately."
+            />
 
             <UsersTable users={users} currentUserId={currentUserId} />
         </div>
