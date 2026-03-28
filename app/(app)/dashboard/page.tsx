@@ -3,8 +3,13 @@ import AnimatedStatCard from "@/app/(app)/components/dashboard/AnimatedStatCard"
 import StockOnHandTable from "../components/dashboard/StockOnHandTable";
 import { formatDistanceToNow } from "date-fns";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
+import { auth } from "@/app/lib/auth";
 
 export default async function DashboardPage() {
+    const session = await auth();
+    const userRole = (session?.user?.role ?? 'ANALYST') as 'ADMIN' | 'MANAGER' | 'ANALYST';
+
+
     const [totalProducts, totalTransactions, products, latestTransaction] = await Promise.all([
         prisma.product.count(),
         prisma.transaction.count(),
@@ -72,7 +77,7 @@ export default async function DashboardPage() {
             </div>
 
             <div>
-                <StockOnHandTable products={products} />
+                <StockOnHandTable products={products} userRole={userRole} />
             </div>
         </div>
     );

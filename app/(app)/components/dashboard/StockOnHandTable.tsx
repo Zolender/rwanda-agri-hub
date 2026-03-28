@@ -3,6 +3,7 @@
 import { ChevronDown, ChevronsUpDown, ChevronUp, Search, Package } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useDarkMode } from "@/app/(app)/components/DarkModeContext";
+import ProductDetailModal from "@/app/(app)/components/dashboard/ProductDetailModal";
 
 type Product = {
     id: string;
@@ -12,17 +13,30 @@ type Product = {
     sellingPriceRwf: number;
     quantity: number;
     reorderPointUnits: number;
+    leadTimeBufferDays?: number;       
 }
+
+type UserRole = 'ADMIN' | 'MANAGER' | 'ANALYST';
 
 type SortField = keyof Product;
 type SortDirection = "asc" | "desc"
 
-const StockOnHandTable = ({ products }: { products: Product[] }) => {
+// ── We now receive userRole from the parent server page ────────────────────────
+const StockOnHandTable = ({
+    products,
+    userRole,
+}: {
+    products: Product[];
+    userRole: UserRole;
+}) => {
 
     const [searchTerm, setSearchTerm] = useState("");
     const [sortField, setSortField] = useState<SortField>("id");
     const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
     const { isDark } = useDarkMode();
+
+    // ── Modal state — null means closed, a product means open ─────────────────
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -90,110 +104,124 @@ const StockOnHandTable = ({ products }: { products: Product[] }) => {
     }
 
     return (
-        <div className={`rounded-lg shadow ${isDark ? 'bg-stone-900' : 'bg-white'}`}>
-            {/* Search Bar */}
-            <div className={`p-4 border-b ${isDark ? 'border-stone-700' : 'border-gray-200'}`}>
-                <div className="relative">
-                    <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-stone-500' : 'text-stone-700'}`} />
-                    <input
-                        type="text"
-                        placeholder="Search by Product ID or Category..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className={`w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors ${
-                            isDark
-                                ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
-                                : 'bg-white border-gray-300 text-stone-700 placeholder:text-stone-400'
-                        }`}
-                    />
+        <>
+            {/* ── Modal (rendered here so it's always mounted with this component) ── */}
+            <ProductDetailModal
+                product={selectedProduct}
+                userRole={userRole}
+                onClose={() => setSelectedProduct(null)}
+            />
+
+            <div className={`rounded-lg shadow ${isDark ? 'bg-stone-900' : 'bg-white'}`}>
+                {/* Search Bar */}
+                <div className={`p-4 border-b ${isDark ? 'border-stone-700' : 'border-gray-200'}`}>
+                    <div className="relative">
+                        <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${isDark ? 'text-stone-500' : 'text-stone-700'}`} />
+                        <input
+                            type="text"
+                            placeholder="Search by Product ID or Category..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className={`w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors ${
+                                isDark
+                                    ? 'bg-stone-800 border-stone-700 text-stone-100 placeholder:text-stone-500'
+                                    : 'bg-white border-gray-300 text-stone-700 placeholder:text-stone-400'
+                            }`}
+                        />
+                    </div>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className={`border-b ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
+                            <tr>
+                                {[
+                                    { label: "Product ID", field: "id" },
+                                    { label: "Category", field: "categoryId" },
+                                    { label: "Stock Level", field: "quantity" },
+                                    { label: "Unit", field: null },
+                                    { label: "Reorder Point", field: "reorderPointUnits" },
+                                    { label: "Status", field: null },
+                                    { label: "Unit Cost (RWF)", field: "unitCostRwf", right: true },
+                                ].map(({ label, field, right }) => (
+                                    <th
+                                        key={label}
+                                        className={`px-6 py-3 text-xs font-medium uppercase tracking-wider ${right ? 'text-right' : 'text-left'} ${field ? 'cursor-pointer' : ''} ${
+                                            isDark
+                                                ? `text-stone-400 ${field ? 'hover:bg-stone-800' : ''}`
+                                                : `text-gray-500 ${field ? 'hover:bg-gray-100' : ''}`
+                                        }`}
+                                        onClick={() => field && handleSort(field as SortField)}
+                                    >
+                                        <div className={`flex items-center gap-2 ${right ? 'justify-end' : ''}`}>
+                                            {label}
+                                            {field && <SortIcon field={field as SortField} />}
+                                        </div>
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className={`divide-y ${isDark ? 'bg-stone-900 divide-stone-700' : 'bg-white divide-gray-200'}`}>
+                            {filteredAndSorted.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className={`px-6 py-8 text-center ${isDark ? 'text-stone-500' : 'text-gray-500'}`}>
+                                        No products found
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredAndSorted.map((product) => {
+                                    const isLowStock = product.quantity <= product.reorderPointUnits;
+                                    return (
+                                        // ── onClick opens the modal ────────────────────────────────────
+                                        <tr
+                                            key={product.id}
+                                            onClick={() => setSelectedProduct(product)}
+                                            className={`transition-colors cursor-pointer ${isDark ? 'hover:bg-stone-800' : 'hover:bg-gray-50'}`}
+                                        >
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
+                                                {product.id}
+                                            </td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
+                                                {product.categoryId}
+                                            </td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
+                                                {product.quantity.toLocaleString()}
+                                            </td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
+                                                {product.unitOfMeasure}
+                                            </td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
+                                                {product.reorderPointUnits.toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {isLowStock ? (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        Low Stock
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        In Stock
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
+                                                {product.unitCostRwf.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Footer */}
+                <div className={`px-6 py-3 border-t text-sm ${isDark ? 'bg-stone-800/50 border-stone-700 text-stone-500' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                    Showing {filteredAndSorted.length} of {products.length} products
                 </div>
             </div>
-
-            {/* Table */}
-            <div className="overflow-x-auto">
-                <table className="w-full">
-                    <thead className={`border-b ${isDark ? 'bg-stone-800/50 border-stone-700' : 'bg-gray-50 border-gray-200'}`}>
-                        <tr>
-                            {[
-                                { label: "Product ID", field: "id" },
-                                { label: "Category", field: "categoryId" },
-                                { label: "Stock Level", field: "quantity" },
-                                { label: "Unit", field: null },
-                                { label: "Reorder Point", field: "reorderPointUnits" },
-                                { label: "Status", field: null },
-                                { label: "Unit Cost (RWF)", field: "unitCostRwf", right: true },
-                            ].map(({ label, field, right }) => (
-                                <th
-                                    key={label}
-                                    className={`px-6 py-3 text-xs font-medium uppercase tracking-wider ${right ? 'text-right' : 'text-left'} ${field ? 'cursor-pointer' : ''} ${
-                                        isDark
-                                            ? `text-stone-400 ${field ? 'hover:bg-stone-800' : ''}`
-                                            : `text-gray-500 ${field ? 'hover:bg-gray-100' : ''}`
-                                    }`}
-                                    onClick={() => field && handleSort(field as SortField)}
-                                >
-                                    <div className={`flex items-center gap-2 ${right ? 'justify-end' : ''}`}>
-                                        {label}
-                                        {field && <SortIcon field={field as SortField} />}
-                                    </div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody className={`divide-y ${isDark ? 'bg-stone-900 divide-stone-700' : 'bg-white divide-gray-200'}`}>
-                        {filteredAndSorted.length === 0 ? (
-                            <tr>
-                                <td colSpan={7} className={`px-6 py-8 text-center ${isDark ? 'text-stone-500' : 'text-gray-500'}`}>
-                                    No products found
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredAndSorted.map((product) => {
-                                const isLowStock = product.quantity <= product.reorderPointUnits;
-                                return (
-                                    <tr key={product.id} className={`transition-colors ${isDark ? 'hover:bg-stone-800' : 'hover:bg-gray-50'}`}>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
-                                            {product.id}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
-                                            {product.categoryId}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-semibold ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
-                                            {product.quantity.toLocaleString()}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
-                                            {product.unitOfMeasure}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDark ? 'text-stone-400' : 'text-gray-500'}`}>
-                                            {product.reorderPointUnits.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            {isLowStock ? (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                    Low Stock
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    In Stock
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDark ? 'text-stone-200' : 'text-gray-900'}`}>
-                                            {product.unitCostRwf.toLocaleString('en-US', { maximumFractionDigits: 2 })}
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Footer */}
-            <div className={`px-6 py-3 border-t text-sm ${isDark ? 'bg-stone-800/50 border-stone-700 text-stone-500' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
-                Showing {filteredAndSorted.length} of {products.length} products
-            </div>
-        </div>
+        </>
     );
 }
 
