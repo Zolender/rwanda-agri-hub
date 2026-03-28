@@ -12,32 +12,31 @@ const connectionString = process.env.DATABASE_URL;
 // 1. Create the pool as usual
 const pool = new Pool({ connectionString });
 
-// 2. Cast the pool to 'any' when passing it to the adapter
-// This tells TypeScript: "Trust me, I know what I'm doing."
+
 const adapter = new PrismaPg(pool as any); 
 
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    const email = "admin2@agrihub.rw";
-    const password = "OwenPassword123";
+    const email = "manager@agrihub.rw";
+    const password = "EzerPassword123";
     
     console.log("🌱 Seeding database...");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const admin = await prisma.user.upsert({
+    const manager = await prisma.user.upsert({
         where: { email },
         update: {},
         create: {
         email,
-        name: "OWEN",
+        name: "Ezer",
         password: hashedPassword,
-        role: "ADMIN",
+        role: "MANAGER",
         },
     });
 
-    console.log(`✅ Created admin user: ${admin.email}`);
+    console.log(`✅ Created manager user: ${manager.email}`);
     }
 
     main()
