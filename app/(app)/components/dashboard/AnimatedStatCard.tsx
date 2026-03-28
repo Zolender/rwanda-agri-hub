@@ -59,7 +59,6 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4, boxShadow: "0 20px 40px rgba(0,0,0,0.15)" }}
             transition={{ duration: 0.3 }}
-            // ↓ bg-white → dark:bg-stone-900, border adapts too
             className={`p-6 rounded-2xl border shadow-sm hover:shadow-lg transition-all group ${
                 isDark
                     ? 'bg-stone-900 border-stone-700'
@@ -90,19 +89,16 @@ export default function AnimatedStatCard({ title, value, iconName, description, 
                 )}
             </div>
             <div>
-                {/* ↓ text-stone-500 → adapts in dark */}
                 <p className={`text-sm font-medium mb-1 ${isDark ? 'text-stone-400' : 'text-stone-500'}`}>
                     {title}
                 </p>
-                {/* ↓ text-stone-900 → adapts in dark */}
                 <motion.h3
-                    className={`text-3xl font-black tracking-tight wrap-break-words ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
+                    className={`text-2xl font-black tracking-tight wrap-break-word ${isDark ? 'text-stone-100' : 'text-stone-900'}`}
                     style={{ fontFamily: "'DM Serif Display', Georgia, serif" }}
                 >
                     {typeof value === 'number' ? count.toLocaleString() : value}
                 </motion.h3>
                 {description && (
-                    // ↓ text-stone-400 → slightly lighter in dark
                     <p className={`text-xs mt-2 ${isDark ? 'text-stone-500' : 'text-stone-400'}`}>
                         {description}
                     </p>
