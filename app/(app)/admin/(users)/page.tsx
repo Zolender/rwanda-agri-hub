@@ -19,7 +19,7 @@ export default async function AdminUsersPage() {
             name: true,
             email: true,
             role: true,
-            emailVerified: true,   // we'll use this as a "last sign-in" proxy
+            createdAt: true
         },
         orderBy: { name: "asc" },
     });

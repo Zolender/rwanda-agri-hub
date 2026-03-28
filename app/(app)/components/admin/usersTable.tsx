@@ -17,7 +17,7 @@ type User = {
     name: string | null;
     email: string | null;
     role: UserRole;
-    emailVerified: Date | null;
+    createdAt: Date | null;
 };
 
 type UsersTableProps = {
@@ -169,10 +169,10 @@ export default function UsersTable({ users, currentUserId }: UsersTableProps) {
 
                                         {/* emailVerified as "last sign-in" proxy */}
                                         <td className={`px-6 py-4 text-sm ${isDark ? "text-stone-400" : "text-stone-500"}`}>
-                                            {user.emailVerified
-                                                ? new Date(user.emailVerified).toLocaleDateString("en-US", {
+                                            {user.createdAt
+                                                ? new Date(user.createdAt).toLocaleDateString("en-US", {
                                                     year: "numeric", month: "short", day: "numeric"
-                                                  })
+                                                    })
                                                 : <span className="text-stone-400 italic">Never</span>
                                             }
                                         </td>
