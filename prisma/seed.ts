@@ -18,25 +18,25 @@ const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-    const email = "manager@agrihub.rw";
-    const password = "EzerPassword123";
+    const email = "admin2@agrihub.rw";
+    const password = "theBoss";
     
     console.log("🌱 Seeding database...");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const manager = await prisma.user.upsert({
+    const admin = await prisma.user.upsert({
         where: { email },
         update: {},
         create: {
         email,
-        name: "Ezer",
+        name: "Owen",
         password: hashedPassword,
-        role: "MANAGER",
+        role: "ADMIN",
         },
     });
 
-    console.log(`✅ Created manager user: ${manager.email}`);
+    console.log(`✅ Created admin user: ${admin.email}`);
     }
 
     main()
