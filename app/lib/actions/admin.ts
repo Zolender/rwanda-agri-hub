@@ -5,8 +5,7 @@ import { auth } from "@/app/lib/auth";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 
-// ── Shared auth guard 
-// We reuse this in every action below. Only ADMIN can manage users.
+// ── Shared auth guard ──────────────────────────────────────────────────────────
 async function requireAdmin() {
     const session = await auth();
     if (!session || session.user?.role !== "ADMIN") {
@@ -15,7 +14,25 @@ async function requireAdmin() {
     return session;
 }
 
-// ── 1. Create a new user 
+// ── Password strength checker ──────────────────────────────────────────────────
+// We export this so the modal can use the exact same rules client-side
+// One source of truth — if we change rules here, the modal reflects it too
+export function checkPasswordStrength(password: string): {
+    score: number;        // 0–4
+    errors: string[];     // which rules are failing
+} {
+    const errors: string[] = [];
+
+    if (password.length < 8)              errors.push("At least 8 characters");
+    if (!/[A-Z]/.test(password))          errors.push("At least one uppercase letter");
+    if (!/[0-9]/.test(password))          errors.push("At least one number");
+    if (!/[^A-Za-z0-9]/.test(password))   errors.push("At least one special character (!@#$...)");
+
+    // score = how many rules are passing (4 = all passing = strong)
+    return { score: 4 - errors.length, errors };
+}
+
+// ── 1. Create a new user
 export async function createUserAction(data: {
     name: string;
     email: string;
@@ -24,16 +41,17 @@ export async function createUserAction(data: {
 }) {
     await requireAdmin();
 
-    // Basic validation
     if (!data.email || !data.password || !data.name) {
         return { success: false, error: "Name, email and password are required." };
     }
-    if (data.password.length < 6) {
-        return { success: false, error: "Password must be at least 6 characters." };
+
+    // Server-side password strength check — same rules as the client
+    const { errors } = checkPasswordStrength(data.password);
+    if (errors.length > 0) {
+        return { success: false, error: `Weak password: ${errors[0]}` };
     }
 
     try {
-        // Hash the password before storing — NEVER store plain text passwords
         const hashedPassword = await bcrypt.hash(data.password, 12);
 
         await prisma.user.create({
@@ -48,7 +66,6 @@ export async function createUserAction(data: {
         revalidatePath("/admin/users");
         return { success: true };
     } catch (error: any) {
-        // Prisma throws a P2002 error when a unique constraint fails (duplicate email)
         if (error.code === "P2002") {
             return { success: false, error: "A user with that email already exists." };
         }
@@ -63,7 +80,6 @@ export async function updateUserRoleAction(
 ) {
     const session = await requireAdmin();
 
-    // Safety: prevent an admin from accidentally demoting themselves
     if (session.user?.id === userId) {
         return { success: false, error: "You cannot change your own role." };
     }
@@ -85,7 +101,6 @@ export async function updateUserRoleAction(
 export async function deleteUserAction(userId: string) {
     const session = await requireAdmin();
 
-    // Safety: prevent self-deletion
     if (session.user?.id === userId) {
         return { success: false, error: "You cannot delete your own account." };
     }
