@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, UserPlus } from "lucide-react";
 import { useDarkMode } from "@/app/(app)/components/DarkModeContext";
-import { createUserAction, checkPasswordStrength } from "@/app/lib/actions/admin";
+import { createUserAction } from "@/app/lib/actions/admin";
+import { checkPasswordStrength } from "@/app/lib/utils/password";
 
 type UserRole = "ADMIN" | "MANAGER" | "ANALYST";
 

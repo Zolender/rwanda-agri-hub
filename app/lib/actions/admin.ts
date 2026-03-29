@@ -4,8 +4,9 @@ import prisma from "@/app/lib/db";
 import { auth } from "@/app/lib/auth";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
+import { checkPasswordStrength } from "@/app/lib/utils/password"; 
 
-// ── Shared auth guard ──────────────────────────────────────────────────────────
+// ── Shared auth guard 
 async function requireAdmin() {
     const session = await auth();
     if (!session || session.user?.role !== "ADMIN") {
@@ -14,25 +15,7 @@ async function requireAdmin() {
     return session;
 }
 
-// ── Password strength checker ──────────────────────────────────────────────────
-// We export this so the modal can use the exact same rules client-side
-// One source of truth — if we change rules here, the modal reflects it too
-export function checkPasswordStrength(password: string): {
-    score: number;        // 0–4
-    errors: string[];     // which rules are failing
-} {
-    const errors: string[] = [];
-
-    if (password.length < 8)              errors.push("At least 8 characters");
-    if (!/[A-Z]/.test(password))          errors.push("At least one uppercase letter");
-    if (!/[0-9]/.test(password))          errors.push("At least one number");
-    if (!/[^A-Za-z0-9]/.test(password))   errors.push("At least one special character (!@#$...)");
-
-    // score = how many rules are passing (4 = all passing = strong)
-    return { score: 4 - errors.length, errors };
-}
-
-// ── 1. Create a new user
+// ── 1. Create a new user 
 export async function createUserAction(data: {
     name: string;
     email: string;
@@ -45,7 +28,6 @@ export async function createUserAction(data: {
         return { success: false, error: "Name, email and password are required." };
     }
 
-    // Server-side password strength check — same rules as the client
     const { errors } = checkPasswordStrength(data.password);
     if (errors.length > 0) {
         return { success: false, error: `Weak password: ${errors[0]}` };
