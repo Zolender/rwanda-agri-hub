@@ -18,6 +18,9 @@ model Product {
   leadTimeBufferDays Int
   quantity           Int           @default(0)
   transactions       Transaction[]
+
+  // Speeds up inventory search by category (dashboard + stock table)
+  @@index([categoryId])
 }
 
 model Transaction {
@@ -38,6 +41,17 @@ model Transaction {
   shipment             Shipment?
   product              Product             @relation(fields: [productId], references: [id])
   metrics              TransactionMetrics?
+
+  // Individual indexes — each filter on the transactions page uses one of these
+  @@index([productId])            // JOIN to Product + product search filter
+  @@index([movementType])         // type filter (Sale / Purchase / Adjustment)
+  @@index([transactionDate])      // date range filter + default sort (desc)
+  @@index([region])               // region filter
+
+  // Composite index — when BOTH productId AND transactionDate are used together
+  // e.g. "show all Sales for product X in date range Y"
+  // A composite is faster than two separate indexes for combined queries
+  @@index([productId, transactionDate])
 }
 
 model Shipment {
