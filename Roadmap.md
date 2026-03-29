@@ -98,17 +98,16 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Refactor `app/login/` → `app/(public)/login/`
 - [x] Create `app/(public)/page.tsx` (landing page)
 - [x] Organize components into feature folders (`dashboard/`, `admin/`, `transactions/`, `import/`)
-- [ ] Move shared utilities to `lib/utils/`
-- [ ] Create `lib/schemas/` for Zod schemas
+- [x] Move shared utilities to `lib/utils/`
+- [x] Create `lib/schemas/` for Zod schemas
 
 ### 1.4 Import Feature (Polish)
 - [x] Add retry logic (3 attempts per row)
 - [x] Improve progress tracking (show row numbers)
-- [ ] Add "partial success" UI (show failed rows)
-- [ ] Add "download error report" button (CSV export)
-- [ ] Add import history tracking (who imported when)
-- [ ] Add file size validation (warn if >5MB)
-- [ ] Add estimated time display
+- [x] Add "partial success" UI (show failed rows)
+- [x] Add "download error report" button (CSV export)
+- [x] Add import history tracking (who imported when)
+- [x] Add file size validation (warn if >5MB)
 
 ### 1.5 Dashboard
 - [x] Fix KPI cards (total products, low stock, recent imports)
@@ -154,7 +153,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add password strength requirements
 - [ ] Add 2FA support (optional, future)
 
-### 2.4 User Management (Admin Only) ✅ COMPLETE
+### 2.4 User Management (Admin Only)
 - [x] Create `/admin/users` route (ADMIN role only)
 - [x] Add user listing page with role badges
 - [x] Add "create user" form (name, email, password, role)
@@ -163,9 +162,9 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add user activity logs
 
 ### 2.5 Deployment
-- [ ] Deploy to Vercel (free tier)
-- [ ] Set up environment variables in Vercel
-- [ ] Configure Supabase connection pooling
+- [x] Deploy to Vercel (free tier)
+- [x] Set up environment variables in Vercel
+- [x] Configure Supabase connection pooling
 - [ ] Add deployment checklist
 - [ ] Test with production data
 - [ ] Add health check endpoint (`/api/health`)
@@ -238,14 +237,14 @@ Build a production-ready inventory management system for agri-input distributors
 ## 🧪 Testing Strategy
 
 ### Unit Tests
-- [ ] Zod schema validation (CSV rows)
+- [x] Zod schema validation (CSV rows)
 - [ ] Utility functions (date formatters, price cleaners)
 - [ ] Auth helper functions (role checks)
 
 ### Integration Tests
-- [ ] Server Actions (import, product CRUD, user CRUD)
-- [ ] Database queries (Prisma operations)
-- [ ] API routes (if any)
+- [x] Server Actions (import, product CRUD, user CRUD)
+- [x] Database queries (Prisma operations)
+- [x] API routes
 
 ### End-to-End Tests (Playwright)
 - [ ] User login flow
