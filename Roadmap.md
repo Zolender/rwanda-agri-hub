@@ -377,7 +377,7 @@ The project is considered **production-ready** when:
 **Focus:** Phase 1 audit + Phase 2 kickoff
 
 **Completed:**
-- ✅ Confirmed Phase 1 is 100% complete (CSV export was already shipped)
+- ✅ Confirmed Phase 1 is 100% complete 
 - ✅ Confirmed deployment is live and stable
 - ✅ Fixed NEXTAUTH_URL after domain rename to agrihub-z.vercel.app
 - ✅ Updated Roadmap to reflect true project state
