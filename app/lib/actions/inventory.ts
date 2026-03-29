@@ -3,8 +3,8 @@
 import prisma from "@/app/lib/db";
 import { auth } from "@/app/lib/auth";
 import { revalidatePath } from "next/cache";
-
-
+import { logAction } from "@/app/lib/utils/audit";
+import { AuditAction } from "@/app/generated/prisma/enums";
 
 export async function getProductPreview(id: string) {
     return await prisma.product.findUnique({
@@ -28,18 +28,18 @@ export async function getPaginatedInventory(page: number = 1, search: string = "
 
     const whereClause = search
         ? {
-                OR: [
-                    { id: { contains: search, mode: "insensitive" as const } },
-                    { categoryId: { contains: search, mode: "insensitive" as const } },
-                ],
-            }
+            OR: [
+                { id: { contains: search, mode: "insensitive" as const } },
+                { categoryId: { contains: search, mode: "insensitive" as const } },
+            ],
+        }
         : {};
 
     const [items, totalCount] = await Promise.all([
         prisma.product.findMany({
             where: whereClause,
             take: pageSize,
-            skip: skip,
+            skip,
             orderBy: { id: "asc" },
         }),
         prisma.product.count({ where: whereClause }),
@@ -48,14 +48,11 @@ export async function getPaginatedInventory(page: number = 1, search: string = "
     return { items, totalPages: Math.ceil(totalCount / pageSize), totalCount };
 }
 
-
-
 export async function recordSaleAction(
     productId: string,
     quantitySold: number,
     region: string
 ) {
-    // Auth check — any signed-in role can record a sale, but we still require a session
     const session = await auth();
     if (!session) {
         return { success: false, error: "You must be signed in to record a sale." };
@@ -88,6 +85,16 @@ export async function recordSaleAction(
             return updated;
         });
 
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.RECORD_SALE,
+            targetId:   productId,
+            targetType: "Product",
+            detail:     `Sold ${quantitySold} units of ${productId} in ${region}`,
+        });
+
         revalidatePath("/dashboard");
         revalidatePath("/transactions");
         return { success: true };
@@ -95,8 +102,6 @@ export async function recordSaleAction(
         return { success: false, error: error.message };
     }
 }
-
-
 
 export async function recordPurchaseAction(
     productId: string,
@@ -110,10 +115,7 @@ export async function recordPurchaseAction(
         !session ||
         (session.user?.role !== "ADMIN" && session.user?.role !== "MANAGER")
     ) {
-        return {
-            success: false,
-            error: "Only Managers and Admins can receive stock.",
-        };
+        return { success: false, error: "Only Managers and Admins can receive stock." };
     }
 
     try {
@@ -140,6 +142,16 @@ export async function recordPurchaseAction(
             });
         });
 
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.RECORD_PURCHASE,
+            targetId:   productId,
+            targetType: "Product",
+            detail:     `Received ${quantityReceived} units of ${productId} in ${region}`,
+        });
+
         revalidatePath("/dashboard");
         revalidatePath("/transactions");
         return { success: true };
@@ -147,7 +159,6 @@ export async function recordPurchaseAction(
         return { success: false, error: error.message };
     }
 }
-
 
 export async function updateProductAction(
     productId: string,
@@ -164,10 +175,7 @@ export async function updateProductAction(
         !session ||
         (session.user?.role !== "ADMIN" && session.user?.role !== "MANAGER")
     ) {
-        return {
-            success: false,
-            error: "Only Managers and Admins can edit product details.",
-        };
+        return { success: false, error: "Only Managers and Admins can edit product details." };
     }
 
     if (Object.keys(data).length === 0) {
@@ -178,6 +186,21 @@ export async function updateProductAction(
         await prisma.product.update({
             where: { id: productId },
             data,
+        });
+
+        // Build a readable summary of what changed e.g. "sellingPriceRwf: 500, reorderPointUnits: 20"
+        const changesSummary = Object.entries(data)
+            .map(([key, val]) => `${key}: ${val}`)
+            .join(", ");
+
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.UPDATE_PRODUCT,
+            targetId:   productId,
+            targetType: "Product",
+            detail:     `Updated ${productId} — ${changesSummary}`,
         });
 
         revalidatePath("/dashboard");

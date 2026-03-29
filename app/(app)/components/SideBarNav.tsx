@@ -12,7 +12,8 @@ import {
     ShoppingBag,
     PackagePlus,
     LogOut,
-    ChevronRight
+    ChevronRight,
+    Shield,
 } from 'lucide-react';
 
 type Role = 'ADMIN' | 'MANAGER' | 'ANALYST';
@@ -27,6 +28,7 @@ export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Ro
         { name: 'Receive Stock', href: '/dashboard/add',  icon: PackagePlus,     minRole: 'MANAGER'  },
         { name: 'Import Data',   href: '/import',         icon: FileUp,          minRole: 'MANAGER'  },
         { name: 'Admin',         href: '/admin',          icon: ShieldCheck,     minRole: 'ADMIN'    },
+        { href: "/admin/audit", label: "Audit Log",       icon: Shield, adminOnly: true }
     ];
 
     const filteredItems = navItems.filter((item) => {

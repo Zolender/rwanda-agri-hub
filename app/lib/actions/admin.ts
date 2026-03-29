@@ -4,9 +4,10 @@ import prisma from "@/app/lib/db";
 import { auth } from "@/app/lib/auth";
 import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
-import { checkPasswordStrength } from "@/app/lib/utils/password"; 
+import { checkPasswordStrength } from "@/app/lib/utils/password";
+import { logAction } from "@/app/lib/utils/audit";
+import { AuditAction } from "@/app/generated/prisma/enums";
 
-// ── Shared auth guard 
 async function requireAdmin() {
     const session = await auth();
     if (!session || session.user?.role !== "ADMIN") {
@@ -15,14 +16,13 @@ async function requireAdmin() {
     return session;
 }
 
-// ── 1. Create a new user 
 export async function createUserAction(data: {
     name: string;
     email: string;
     password: string;
     role: "ADMIN" | "MANAGER" | "ANALYST";
 }) {
-    await requireAdmin();
+    const session = await requireAdmin();
 
     if (!data.email || !data.password || !data.name) {
         return { success: false, error: "Name, email and password are required." };
@@ -36,13 +36,23 @@ export async function createUserAction(data: {
     try {
         const hashedPassword = await bcrypt.hash(data.password, 12);
 
-        await prisma.user.create({
+        const newUser = await prisma.user.create({
             data: {
                 name: data.name,
                 email: data.email,
                 password: hashedPassword,
                 role: data.role,
             },
+        });
+
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.CREATE_USER,
+            targetId:   newUser.id,
+            targetType: "User",
+            detail:     `Created user ${data.email} with role ${data.role}`,
         });
 
         revalidatePath("/admin/users");
@@ -55,7 +65,6 @@ export async function createUserAction(data: {
     }
 }
 
-// ── 2. Update a user's role 
 export async function updateUserRoleAction(
     userId: string,
     newRole: "ADMIN" | "MANAGER" | "ANALYST"
@@ -67,9 +76,25 @@ export async function updateUserRoleAction(
     }
 
     try {
+        // Fetch old role before updating so we can log the change
+        const existing = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, role: true },
+        });
+
         await prisma.user.update({
             where: { id: userId },
             data: { role: newRole },
+        });
+
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.UPDATE_ROLE,
+            targetId:   userId,
+            targetType: "User",
+            detail:     `Changed role of ${existing?.email} from ${existing?.role} to ${newRole}`,
         });
 
         revalidatePath("/admin/users");
@@ -79,7 +104,6 @@ export async function updateUserRoleAction(
     }
 }
 
-// ── 3. Delete a user 
 export async function deleteUserAction(userId: string) {
     const session = await requireAdmin();
 
@@ -88,7 +112,23 @@ export async function deleteUserAction(userId: string) {
     }
 
     try {
+        // Fetch user details before deleting — after deletion they're gone
+        const existing = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, role: true },
+        });
+
         await prisma.user.delete({ where: { id: userId } });
+
+        await logAction({
+            userId:     session.user?.id,
+            userEmail:  session.user?.email,
+            userRole:   session.user?.role,
+            action:     AuditAction.DELETE_USER,
+            targetId:   userId,
+            targetType: "User",
+            detail:     `Deleted user ${existing?.email} (was ${existing?.role})`,
+        });
 
         revalidatePath("/admin/users");
         return { success: true };
