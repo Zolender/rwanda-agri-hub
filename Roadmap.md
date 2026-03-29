@@ -1,7 +1,7 @@
 # Rwanda Agri-Hub: Development Roadmap
 
-> **Status:** Phase 1 Complete → Phase 2 In Progress  
-> **Last Updated:** 2026-03-28
+> **Status:** Phase 1 Complete ✅ → Phase 2 In Progress 🔧  
+> **Last Updated:** 2026-03-29
 
 ---
 
@@ -54,6 +54,12 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] DangerModal reused for delete confirmation
 - [x] AdminPageHeader component (client, dark-mode aware, consistent with app style)
 - [x] Clean URL via `(users)` route group (`/admin/users` not `/admin/users/users`)
+- [x] CSV export for transactions (`/api/transactions/export`) — filter-aware, auth-checked, 10k row limit
+- [x] FiltersBar Export CSV button wired to API route
+- [x] Sale page + SalePageHeader + SalePageSidebar (dark mode)
+- [x] QuickAdd (Receive Stock) page + QuickAddHeader with role validation
+- [x] Auth checks hardened on sale and purchase server actions
+- [x] Deployed to Vercel production (agrihub-z.vercel.app)
 
 ### Challenges Solved (18 total)
 - [x] Prisma v7 driver adapter configuration
@@ -74,6 +80,7 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Self-protection guards in admin actions (can't delete/demote own account)
 - [x] `emailVerified` not populated for Credentials users — column removed, noted for future OAuth
 - [x] `useTransition` for server action calls without blocking UI (spinner pattern)
+- [x] NEXTAUTH_URL env var mismatch after domain rename — fixed in Vercel
 
 ---
 
@@ -125,14 +132,14 @@ Build a production-ready inventory management system for agri-input distributors
 - [x] Implement region filter
 - [x] Add product search
 - [x] Transaction row detail modal (ProductDetailModal, role-gated)
-- [ ] Add CSV export functionality (API route needed)
+- [x] Add CSV export functionality (`/api/transactions/export` route)
 
 ---
 
 ## 🔧 Phase 2: Production Readiness
 
 ### 2.1 Error Handling & Logging
-- [ ] Add structured logging (Winston or Pino)
+- [ ] Add structured logging (Pino)
 - [ ] Add error tracking (Sentry integration)
 - [ ] Improve Server Action error messages
 - [ ] Add database query error handling
@@ -175,8 +182,8 @@ Build a production-ready inventory management system for agri-input distributors
 ## 🚀 Phase 3: Advanced Features
 
 ### 3.1 Data Export
+- [x] Add CSV export for transactions
 - [ ] Add CSV export for products
-- [ ] Add CSV export for transactions
 - [ ] Add PDF report generation (optional)
 - [ ] Add scheduled reports (email digest)
 
@@ -242,9 +249,9 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Auth helper functions (role checks)
 
 ### Integration Tests
-- [x] Server Actions (import, product CRUD, user CRUD)
-- [x] Database queries (Prisma operations)
-- [x] API routes
+- [ ] Server Actions (import, product CRUD, user CRUD)
+- [ ] Database queries (Prisma operations)
+- [ ] API routes
 
 ### End-to-End Tests (Playwright)
 - [ ] User login flow
@@ -364,17 +371,38 @@ The project is considered **production-ready** when:
 **Phase 1 Progress:** ✅ 100% complete  
 **Phase 2 Progress:** 2.4 User Management ✅ complete  
 **Build Status:** ✅ Working  
-**Deployment Status:** Local dev only
+**Deployment Status:** ✅ Live on Vercel (agrihub-z.vercel.app)
+
+### 2026-03-29 (Checkpoint 4)
+**Focus:** Phase 1 audit + Phase 2 kickoff
+
+**Completed:**
+- ✅ Confirmed Phase 1 is 100% complete (CSV export was already shipped)
+- ✅ Confirmed deployment is live and stable
+- ✅ Fixed NEXTAUTH_URL after domain rename to agrihub-z.vercel.app
+- ✅ Updated Roadmap to reflect true project state
+- ✅ Established dev branch workflow (dev → main = dev → production)
+
+**Key patterns learned:**
+- `NEXTAUTH_URL` controls where `signOut()` redirects — must match deployed domain
+- Supabase pooler URL (port 6543) vs direct URL (port 5432) — same host, different ports, both needed
+- `dev` branch for active development, `main` = production
+
+**Time Invested:** ~1 hour  
+**Phase 1 Progress:** ✅ 100% complete  
+**Phase 2 Progress:** 🔧 Starting  
+**Build Status:** ✅ Working  
+**Deployment Status:** ✅ Live on Vercel (agrihub-z.vercel.app)
 
 ## 📝 Notes
 
 - Keep updating this roadmap as tasks complete
 - Move completed items to "Completed" section
 - Add new discoveries to "Challenges Solved"
-- Celebrate small wins! 🎉
+- Celebrate small wins!
 
 ---
 
-**Version:** 1.3  
+**Version:** 1.4  
 **Maintainer:** @Zolender  
 **License:** MIT
