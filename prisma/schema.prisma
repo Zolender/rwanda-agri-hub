@@ -18,6 +18,8 @@ model Product {
   leadTimeBufferDays Int
   quantity           Int           @default(0)
   transactions       Transaction[]
+
+  @@index([categoryId])
 }
 
 model Transaction {
@@ -38,6 +40,12 @@ model Transaction {
   shipment             Shipment?
   product              Product             @relation(fields: [productId], references: [id])
   metrics              TransactionMetrics?
+
+  @@index([productId])
+  @@index([movementType])
+  @@index([transactionDate])
+  @@index([region])
+  @@index([productId, transactionDate])
 }
 
 model Shipment {
@@ -104,16 +112,17 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(ANALYST)
+  role          UserRole   @default(ANALYST)
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
+  auditLogs     AuditLog[] // a user can have many audit log entries
+  createdAt     DateTime   @default(now())
 }
 
 model VerificationToken {
@@ -122,6 +131,27 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ── Audit Log ──────────────────────────────────────────────────────────────────
+// Records every important mutation in the system.
+// userId is optional (?) so we can still log if session lookup fails gracefully.
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  userEmail  String?     // denormalised — so we still see who did it even if user is deleted
+  userRole   String?
+  action     AuditAction
+  targetId   String?     // the ID of the thing being acted on (productId, userId, etc.)
+  targetType String?     // "Product", "User", "Transaction" — what kind of thing
+  detail     String?     // human-readable description: "Changed price 500 → 650"
+  createdAt  DateTime    @default(now())
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // We'll query by userId and by action type most often
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 enum MovementType {
@@ -134,4 +164,13 @@ enum UserRole {
   ADMIN
   MANAGER
   ANALYST
+}
+
+enum AuditAction {
+  CREATE_USER
+  UPDATE_ROLE
+  DELETE_USER
+  UPDATE_PRODUCT
+  RECORD_SALE
+  RECORD_PURCHASE
 }
