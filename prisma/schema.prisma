@@ -19,7 +19,6 @@ model Product {
   quantity           Int           @default(0)
   transactions       Transaction[]
 
-  // Speeds up inventory search by category (dashboard + stock table)
   @@index([categoryId])
 }
 
@@ -42,15 +41,10 @@ model Transaction {
   product              Product             @relation(fields: [productId], references: [id])
   metrics              TransactionMetrics?
 
-  // Individual indexes — each filter on the transactions page uses one of these
-  @@index([productId])            // JOIN to Product + product search filter
-  @@index([movementType])         // type filter (Sale / Purchase / Adjustment)
-  @@index([transactionDate])      // date range filter + default sort (desc)
-  @@index([region])               // region filter
-
-  // Composite index — when BOTH productId AND transactionDate are used together
-  // e.g. "show all Sales for product X in date range Y"
-  // A composite is faster than two separate indexes for combined queries
+  @@index([productId])
+  @@index([movementType])
+  @@index([transactionDate])
+  @@index([region])
   @@index([productId, transactionDate])
 }
 
@@ -118,16 +112,17 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String     @id @default(cuid())
   name          String?
-  email         String?   @unique
+  email         String?    @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(ANALYST)
+  role          UserRole   @default(ANALYST)
   accounts      Account[]
   sessions      Session[]
-  createdAt     DateTime  @default(now())
+  auditLogs     AuditLog[] // a user can have many audit log entries
+  createdAt     DateTime   @default(now())
 }
 
 model VerificationToken {
@@ -136,6 +131,27 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// ── Audit Log ──────────────────────────────────────────────────────────────────
+// Records every important mutation in the system.
+// userId is optional (?) so we can still log if session lookup fails gracefully.
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  userEmail  String?     // denormalised — so we still see who did it even if user is deleted
+  userRole   String?
+  action     AuditAction
+  targetId   String?     // the ID of the thing being acted on (productId, userId, etc.)
+  targetType String?     // "Product", "User", "Transaction" — what kind of thing
+  detail     String?     // human-readable description: "Changed price 500 → 650"
+  createdAt  DateTime    @default(now())
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // We'll query by userId and by action type most often
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
 
 enum MovementType {
@@ -148,4 +164,13 @@ enum UserRole {
   ADMIN
   MANAGER
   ANALYST
+}
+
+enum AuditAction {
+  CREATE_USER
+  UPDATE_ROLE
+  DELETE_USER
+  UPDATE_PRODUCT
+  RECORD_SALE
+  RECORD_PURCHASE
 }
