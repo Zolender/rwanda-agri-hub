@@ -49,7 +49,7 @@ This log tracks the technical hurdles encountered during the development of the 
 ## 7. The "Ghost Row" & Greedy Parsing
 
 * Challenge: The CSV import kept crashing with a "Validation failed: expected string, received undefined" error, even though the data looked correct in the file.
-* Discovery: * CSV parsers often read the trailing "Enter" (newline) at the end of a file as a new, empty row.
+* Discovery: CSV parsers often read the trailing "Enter" (newline) at the end of a file as a new, empty row.
 * Solution:
 	+ Implemented skipEmptyLines: 'greedy' in the Papaparse configuration to ignore whitespace-only rows.
 	+ Added a .filter() method in the Server Action to manually strip out rows missing an id before processing.
@@ -72,6 +72,7 @@ This log tracks the technical hurdles encountered during the development of the 
 
 * Challenge: Data was not saving because the frontend used sku and price while the database schema used id and unitCostRwf.
 * Solution: Renamed all Zod schema keys and Prisma upsert keys to strictly match the schema.prisma file.
+
 ## 11. The "Too Many Redirects" Loop
 
 Challenge:
@@ -145,36 +146,61 @@ Solution:
 * Implemented the beforeunload browser event listener that triggers only while isUploading is true.
 * Added a "Confirmation Question" (window.confirm) before the import starts.
 * Implemented a fixed inset-0 UI overlay that visually locks the screen and shows a progress percentage, preventing accidental navigation within the app.
+
 ## 17. Schema Evolution & Missing Required Fields
 
 Challenge:
-* After making `quantityOrderedUnits` a required field (removing the `?` optional marker) in the Prisma schema, the CSV import began failing with cryptic "endpoint doesn't exist" errors. The browser's network tab showed requests stuck in "pending" state indefinitely.
+* After making `quantityOrderedUnits` a required field (removing the `?` optional marker) in the Prisma schema, the CSV import began failing with cryptic "endpoint doesn't exist" errors.
 
 Why it happened:
-* The schema was updated to make `quantityOrderedUnits` required (changed from `Int?` to `Int`), but the `recordSaleAction` function in `inventory.ts` was still written for the old schema and wasn't providing this field when creating transactions.
-* The generated Prisma client was out of sync with the actual database schema, causing type mismatches between the code and the database.
+* The `recordSaleAction` function in `inventory.ts` was still written for the old schema and wasn't providing this field when creating transactions.
+* The generated Prisma client was out of sync with the actual database schema.
 
 Solution:
-* Updated `recordSaleAction` in `inventory.ts` to include `quantityOrderedUnits: quantitySold` in the transaction creation.
-* Ran `npx prisma generate` to regenerate the Prisma client with the updated schema.
-* Restarted the development server to ensure the new Prisma client was loaded.
-* This highlighted the importance of keeping all server actions synchronized when schema fields change from optional to required.
-## 17. Error Boundary Implementation (Next.js 15)
+* Updated `recordSaleAction` in `inventory.ts` to include `quantityOrderedUnits: quantitySold`.
+* Ran `npx prisma generate` to regenerate the Prisma client.
+* Key rule: always run `prisma generate` after schema changes, even after `migrate dev`.
 
-* Challenge: Needed to handle errors gracefully without white screens
-* Solution: Created `error.tsx` file in route group for automatic error catching
-* Key Learning: Next.js 15 has built-in error boundaries at the route level
+## 18. Error Boundary Implementation (Next.js 15)
 
-## 18. Loading States with Skeletons
+* Challenge: Needed to handle errors gracefully without white screens.
+* Solution: Created `error.tsx` file in route group for automatic error catching.
+* Key Learning: Next.js 15 has built-in error boundaries at the route level.
 
-* Challenge: Tables showed blank screen while data loaded
-* Solution: Created `loading.tsx` with animated skeleton screens
-* Key Learning: loading.tsx automatically wraps async Server Components in Suspense
+## 19. Loading States with Skeletons
 
+* Challenge: Tables showed blank screen while data loaded.
+* Solution: Created `loading.tsx` with animated skeleton screens.
+* Key Learning: `loading.tsx` automatically wraps async Server Components in Suspense.
 
-## 19. Next.js 15 Async searchParams
+## 20. Next.js 15 Async searchParams
 
-* Challenge: Filters weren't working - searchParams not being read
-* Root Cause: Next.js 15 changed searchParams to async Promise for Partial Prerendering
-* Solution: Changed type to `Promise<SearchParams>` and added `await searchParams`
-* Key Learning: Next.js 15 made several params async (searchParams, params) for better performance
+* Challenge: Filters weren't working — searchParams not being read.
+* Root Cause: Next.js 15 changed searchParams to async Promise for Partial Prerendering.
+* Solution: Changed type to `Promise<SearchParams>` and added `await searchParams`.
+* Key Learning: Next.js 15 made several params async (searchParams, params) for better performance.
+
+## 21. `"use server"` Files Only Allow Async Exports
+
+* Challenge: TypeScript/Next.js error — "Server action functions must be async" — thrown on `checkPasswordStrength`, a plain synchronous utility placed inside a `"use server"` file.
+* Why it happened: The `"use server"` directive at the top of a file applies to **every exported function** in that file. Next.js enforces that all exports from a server action file are async, because they may be called as RPC endpoints.
+* Solution:
+  + Moved `checkPasswordStrength` to `app/lib/utils/password.ts` — a plain utility file with no directive.
+  + Imported it from both `admin.ts` (server) and `createUserModal.tsx` (client) — one source of truth, zero duplication.
+* Key rule: `"use server"` files = async server actions only. Pure utility functions → `lib/utils/`.
+
+## 22. Stale Prisma Client After Schema Migration
+
+* Challenge: After adding the `AuditLog` model and running `prisma migrate dev`, the app threw `TypeError: Cannot read properties of undefined (reading 'findMany')` on `prisma.auditLog`.
+* Why it happened: `prisma migrate dev` creates the table in the database but doesn't always regenerate the TypeScript client automatically — especially with a custom `output` path (`../app/generated/prisma`). The client in memory still had the old schema with no `auditLog` property.
+* Solution: Ran `npx prisma generate` manually after the migration, then restarted the dev server.
+* Key rule: After every schema change → `prisma migrate dev` + `prisma generate`. When in doubt, generate.
+
+## 23. Server Component Dark Mode (The Split Component Pattern)
+
+* Challenge: A server component page (`/admin/audit`) ignored dark mode — it had no access to `useDarkMode()` since that hook reads from React Context, which only exists on the client.
+* Why it happened: Server components run on the server at request time — there is no browser, no localStorage, no React Context available. Hooks like `useDarkMode()` simply cannot be called there.
+* Solution: Split the page into two files:
+    + `page.tsx` — server component: handles auth check + DB fetch, passes data as props.
+    + `AuditLogTable.tsx` — client component (`"use client"`): receives data as props, calls `useDarkMode()`, renders the UI.
+* Key rule: Server components fetch data. Client components handle interactivity and browser APIs. They compose — server renders client, never the other way.

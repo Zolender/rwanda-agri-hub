@@ -146,37 +146,37 @@ Build a production-ready inventory management system for agri-input distributors
 - [ ] Add network error retry logic
 
 ### 2.2 Performance Optimization
-- [ ] Add database indexes (products, transactions)
+- [x] Add database indexes (products, transactions)  ← ✅ done tonight
 - [ ] Analyze slow queries (EXPLAIN ANALYZE)
 - [ ] Implement React.lazy for code splitting
 - [ ] Add caching strategy (React Cache)
-- [ ] Optimize bundle size (analyze with webpack-bundle-analyzer)
+- [ ] Optimize bundle size
 
 ### 2.3 Security Hardening
 - [ ] Add rate limiting (Upstash Redis or in-memory)
-- [ ] Add CSRF protection (NextAuth handles this)
-- [ ] Implement audit logs (who did what, when)
+- [ ] Implement audit logs (who did what, when)  ← moved to 2.4
 - [ ] Add session timeout configuration
-- [ ] Add password strength requirements
+- [x] Add password strength requirements  ← ✅ done tonight
 - [ ] Add 2FA support (optional, future)
 
-### 2.4 User Management (Admin Only)
-- [x] Create `/admin/users` route (ADMIN role only)
-- [x] Add user listing page with role badges
-- [x] Add "create user" form (name, email, password, role)
-- [x] Add "edit user role" modal (promote/demote between roles)
-- [x] Add "delete user" confirmation (DangerModal reused)
-- [ ] Add user activity logs
+### 2.4 Audit Log ✅
+- [x] AuditLog model + AuditAction enum in schema.prisma
+- [x] logAction() helper in lib/utils/audit.ts
+- [x] Wired into admin.ts (CREATE_USER, UPDATE_ROLE, DELETE_USER)
+- [x] Wired into inventory.ts (UPDATE_PRODUCT, RECORD_SALE, RECORD_PURCHASE)
+- [x] /admin/audit page — server fetch + client render (dark mode)
+- [x] Sidebar grouped Admin section (Users + Audit Log, ADMIN only)
+- [ ] Add user activity logs pagination (future)
 
 ### 2.5 Deployment
 - [x] Deploy to Vercel (free tier)
 - [x] Set up environment variables in Vercel
 - [x] Configure Supabase connection pooling
+- [x] Add health check endpoint (/api/health)  
+- [x] UptimeRobot monitoring configured
 - [ ] Add deployment checklist
 - [ ] Test with production data
-- [ ] Add health check endpoint (`/api/health`)
 - [ ] Add database backup strategy documentation
-
 ---
 
 ## 🚀 Phase 3: Advanced Features
