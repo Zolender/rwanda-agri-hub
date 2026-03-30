@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Rwanda Agri Hub",
+    title: "Agri Hub",
     description: "A app design to help out agri sellers",
 };
 
