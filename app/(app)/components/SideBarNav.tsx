@@ -15,6 +15,7 @@ import {
     ChevronRight,
     Users,
     ScrollText,
+    UserCircle
 } from 'lucide-react';
 
 type Role = 'ADMIN' | 'MANAGER' | 'ANALYST';
@@ -50,6 +51,7 @@ export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Ro
         { name: 'Record Sale',   href: '/dashboard/sale', icon: ShoppingBag,     minRole: 'ANALYST' },
         { name: 'Receive Stock', href: '/dashboard/add',  icon: PackagePlus,     minRole: 'MANAGER' },
         { name: 'Import Data',   href: '/import',         icon: FileUp,          minRole: 'MANAGER' },
+        { name: 'Profile',       href: '/profile',        icon: UserCircle,      minRole: 'ANALYST' },
     ];
 
     
