@@ -69,8 +69,7 @@ export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Ro
     // ── Shared link renderer ───────────────────────────────────────────────────
     const renderNavLink = (item: NavItem, index: number) => {
         const Icon = item.icon;
-        // Active if exact match, or if we're on a sub-path (e.g. /admin/audit is under /admin)
-        const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+        const isActive = pathname === item.href || (item.href.startsWith('/admin') && pathname.startsWith(item.href + '/'));
 
         return (
             <motion.div
