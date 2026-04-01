@@ -45,7 +45,7 @@ export default function LoginPage() {
             style={{ fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif" }}
         >
             {/* Animated Background */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-emerald-100/40 blur-[120px] pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 rounded-full bg-emerald-100/40 blur-[120px] pointer-events-none" />
             
             {/* Floating Shapes */}
             <motion.div
