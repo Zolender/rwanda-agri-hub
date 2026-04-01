@@ -37,7 +37,7 @@ export default async function DashboardPage() {
         })
     ]);
 
-                throw new Error("Sentry test — delete me");
+                // throw new Error("Sentry test — delete me");
 
 
     const totalValue = products.reduce((sum, p) => sum + (p.quantity * p.unitCostRwf), 0);
