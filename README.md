@@ -1,169 +1,175 @@
-# Rwanda Agri Hub — Inventory Orchestration (Web App)
+# Rwanda AgriHub — Inventory Management System
 
-A web application for Rwanda mid-market agri-input distributors to record, import, and analyze **inventory transactions** (Sales, Purchases, Adjustments) and track **stock-on-hand** over time.
+A production-ready web application for Rwanda mid-market agri-input distributors to manage inventory transactions, track stock levels, and control user access with full audit logging.
 
-> Current scope (for now): **Frontend + Backend only**  
-> Out of scope (for now): ML/AI recommendation engine
-
----
-
-## 1) Problem Context (Why this exists)
-
-Agri-input distributors in Rwanda face frequent stock issues due to:
-- long and variable import lead times (corridor/port/border delays),
-- seasonality (Season A / Season B),
-- pricing volatility (cost changes, landed cost changes).
-
-Many SMEs rely on manual reorder points and spreadsheets. This project starts by building a **reliable system of record** for inventory movements and stock levels.
+🔗 **Live:** [agrihub-z.vercel.app](https://agrihub-z.vercel.app)
 
 ---
 
-## 2) What this app will do (v1)
+## What it does
 
-### Core features
-- Import inventory transaction data from a CSV file
-- Store transactions in a database (PostgreSQL)
-- Provide dashboards and tables for:
-  - Stock on hand (latest stock per product)
-  - Transaction history filtered by product / region / time / movement type
-  - Lost sales tracking (stockouts)
-
-### Users (Authentication)
-- Multiple users can log in.
-- Roles (initial plan):
-  - **Admin**: manage users, import data
-  - **Manager**: view dashboards and transactions
-  - **Analyst**: view/export reports (optional)
+- **Dashboard** — KPI cards (total products, low stock, inventory value, last import) + sortable stock-on-hand table
+- **Transactions** — Full inventory ledger with filters (date range, movement type, region, product search) + CSV export
+- **CSV Import** — Chunked upload with real-time progress, row validation, error reporting, and retry logic
+- **Record Sale / Receive Stock** — Quick-entry forms for ANALYST (sales) and MANAGER+ (purchases)
+- **User Management** — ADMIN can create, edit roles, and delete users with full self-protection guards
+- **Audit Log** — Every mutation is logged (who, what, when) — paginated, ADMIN only
+- **Profile** — Every user can view their account info and change their own password
+- **Rate Limiting** — Login endpoint protected with Upstash Redis (5 attempts / 15 minutes per IP)
+- **Dark Mode** — Persisted via localStorage, available across the entire app
 
 ---
 
-## 3) Tech Stack (planned)
+## Tech Stack
 
-This repository is TypeScript-first.
-
-- Frontend: **Next.js (TypeScript)** + React
-- Backend: **Next.js Route Handlers** (API inside the same app)
-- Database: **PostgreSQL**
-- ORM: **Prisma**
-- Validation: **Zod**
-- UI: (TBD) Tailwind CSS and later on GSAP for animation
-- Testing: (later) Playwright + Vitest
-
----
-
-## 4) Data Contract (CSV format)
-
-### 4.1 CSV header (expected columns)
-
-The CSV must include the following columns:
-
-- `product_id`
-- `category_id`
-- `unit_of_measure`
-- `unit_cost_rwf`
-- `selling_price_rwf`
-- `reorder_point_units`
-- `lead_time_buffer_days`
-- `movement_type` — allowed: `Sale`, `Purchase`, `Adjustment`
-- `quantity_ordered_units`
-- `quantity_fulfilled_units`
-- `remaining_stock_units`
-- `order_id`
-- `customer_id`
-- `region`
-- `lost_sale_qty_units`
-- `po_id`
-- `supplier_id`
-- `transaction_date`
-- `landed_cost_rwf`
-
-> Note: `product_status` is intentionally **not** part of the v1 model, because it is redundant (it was always “available” or “sold” in the source CSV).  
-> If the CSV includes it, we may ignore it during import.
-
-### 4.2 Key definitions (important)
-
-#### Inventory transaction (row)
-Each row represents a single **inventory movement event** at a specific time.
-
-#### `movement_type`
-- `Sale`: inventory decreases due to customer demand
-- `Purchase`: inventory increases due to restocking
-- `Adjustment`: inventory changes due to corrections, losses, breakage, etc.
-
-#### `remaining_stock_units`
-**This is the stock level AFTER the transaction**.
-
-Example:
-- If `movement_type = Sale` and `quantity_fulfilled_units = 31`
-- and `remaining_stock_units = 2607`
-- then stock before sale was `2638`.
-
-#### `quantity_ordered_units` vs `quantity_fulfilled_units`
-- `quantity_ordered_units`: what was requested by the market/customer (demand)
-- `quantity_fulfilled_units`: what was actually delivered (supply fulfilled)
-
-#### `lost_sale_qty_units`
-A stockout indicator. Usually:
-`lost_sale_qty_units = quantity_ordered_units - quantity_fulfilled_units` (when positive).
-
-#### `order_id`
-Currently unique per row due to the way the CSV was generated.
-Future improvement: support orders containing multiple SKUs.
-
-#### `po_id` / `supplier_id` on sales
-In this dataset, `po_id` and `supplier_id` may appear even on sale rows (likely as batch/procurement lineage). The app will store them as provided.
-
-#### `transaction_date` timezone
-Unless otherwise specified, `transaction_date` values are interpreted as **Rwanda time (UTC+2)**.
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router, TypeScript) |
+| Auth | NextAuth v5 (JWT strategy, Credentials provider) |
+| Database | PostgreSQL via Supabase |
+| ORM | Prisma 7 (custom output path, driver adapter) |
+| Styling | Tailwind CSS + Framer Motion |
+| Icons | Lucide React |
+| Validation | Zod |
+| Rate Limiting | Upstash Redis (`@upstash/ratelimit`) |
+| Deployment | Vercel |
+| Testing | Vitest |
 
 ---
 
-## 5) Data Quality Rules (import validation)
+## Roles (RBAC)
 
-On CSV import, we will validate:
-- `movement_type` is one of: `Sale`, `Purchase`, `Adjustment`
-- numeric columns parse correctly (RWF costs/prices, quantities)
-- `transaction_date` parses correctly and is stored as a timestamp
-- `remaining_stock_units >= 0`
-- for `Sale`:
-  - `quantity_fulfilled_units <= quantity_ordered_units` (when ordered exists)
-  - `lost_sale_qty_units >= 0`
+| Role | Access |
+|---|---|
+| **ADMIN** | Everything — including user management and audit log |
+| **MANAGER** | Dashboard, transactions, import, receive stock |
+| **ANALYST** | Dashboard, transactions (read-only), record sale, profile |
 
-Invalid rows should be reported back to the user with clear error messages.
+> Role is stamped into the JWT on login — no extra DB query per request. Every server action re-enforces its own role check independently of the frontend.
 
 ---
 
-## 6) Roadmap (step-by-step)
+## Getting Started
 
-### Phase 1 — System of Record
-- Database schema
-- CSV import API
-- Transactions table view + filters
-- Stock-on-hand dashboard
+### Prerequisites
+- Node.js 18+
+- A PostgreSQL database (Supabase recommended)
+- An Upstash Redis database (free tier works)
 
-### Phase 2 — Operational UX
-- User authentication + roles
-- Audit logs (who imported what, when)
-- Basic exports (CSV download)
+### 1. Clone & install
 
-### Phase 3 — Enhancements (non-AI)
-- Multi-SKU orders (true order + order line items)
-- Better supplier/customer views
-- Charts and trends
+```bash
+git clone https://github.com/Zolender/rwanda-agri-hub.git
+cd rwanda-agri-hub
+npm install
+```
+
+### 2. Set up environment variables
+
+```bash
+cp .env.example .env
+```
+
+Fill in `.env`:
+
+```env
+# Database — Supabase provides both URLs
+DATABASE_URL="postgresql://user:password@host:6543/database?pgbouncer=true"
+DIRECT_URL="postgresql://user:password@host:5432/database"
+
+# NextAuth
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-here"   # generate with: openssl rand -base64 32
+
+# Upstash Redis (rate limiting)
+UPSTASH_REDIS_REST_URL="https://your-url.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your-token"
+```
+
+> `DATABASE_URL` uses port 6543 (Supabase connection pooler — for runtime queries).  
+> `DIRECT_URL` uses port 5432 (direct connection — for migrations only).
+
+### 3. Run migrations & generate client
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+### 4. Seed the first admin user
+
+```bash
+npx tsx prisma/seed.ts
+```
+
+### 5. Start the dev server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) and sign in with the seeded admin credentials.
 
 ---
 
-## 7) Project Glossary (quick definitions)
+## Project Structure
 
-- **SKU (`product_id`)**: a unique code for a product.
-- **Inventory ledger**: a chronological log of inventory movements.
-- **Normalize (database)**: store data in separate tables to reduce duplication.
-- **Data contract**: agreed meaning of each column and its rules.
+```
+app/
+├── (public)/               # Public routes (no auth required)
+│   ├── page.tsx            # Landing page
+│   └── login/page.tsx      # Login page (rate limited)
+├── (app)/                  # Protected routes (auth required)
+│   ├── layout.tsx          # Auth guard + DashboardShell
+│   ├── dashboard/          # Stock overview + KPIs
+│   ├── transactions/       # Inventory ledger + filters
+│   ├── import/             # CSV import (MANAGER+)
+│   ├── profile/            # User profile + change password
+│   ├── admin/
+│   │   ├── (users)/        # /admin/users — user management (ADMIN)
+│   │   └── audit/          # /admin/audit — audit log (ADMIN)
+│   └── components/         # Shared UI components
+├── api/
+│   ├── health/             # GET /api/health — DB ping
+│   └── transactions/export # GET /api/transactions/export — CSV download
+└── lib/
+    ├── actions/            # Server actions (admin, inventory, profile, login)
+    ├── utils/              # password.ts, audit.ts, ratelimit.ts
+    ├── auth.ts             # NextAuth full config (Node.js runtime)
+    ├── auth.config.ts      # NextAuth light config (Edge runtime / middleware)
+    └── db.ts               # Prisma singleton
+middleware.ts               # Route protection (Edge runtime)
+prisma/
+├── schema.prisma
+└── seed.ts
+```
 
 ---
 
-## 8) Next steps
+## CSV Import Format
 
-1) Implement Prisma schema + migrations
-2) Implement `/api/import/csv`
-3) Implement the initial dashboard pages
+The import page accepts a CSV file with the following columns:
+
+`product_id`, `category_id`, `unit_of_measure`, `unit_cost_rwf`, `selling_price_rwf`, `reorder_point_units`, `lead_time_buffer_days`, `movement_type` *(Sale / Purchase / Adjustment)*, `quantity_ordered_units`, `quantity_fulfilled_units`, `remaining_stock_units`, `order_id`, `customer_id`, `region`, `lost_sale_qty_units`, `po_id`, `supplier_id`, `transaction_date`, `landed_cost_rwf`
+
+> Large files are handled via client-side chunking (100 rows per batch) to stay within the 1MB server action limit.
+
+---
+
+## Scripts
+
+```bash
+npm run dev          # Start dev server (Turbopack)
+npm run build        # Production build
+npm run test         # Run Vitest tests
+npx prisma studio    # Open Prisma database GUI
+npx prisma generate  # Regenerate Prisma client after schema changes
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](./LICENSE)
+
+**Maintainer:** [@Zolender](https://github.com/Zolender)
