@@ -1,34 +1,35 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Leaf, Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Leaf, Mail, Lock, ArrowRight, Eye, EyeOff, AlertCircle, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
+import { loginAction } from '@/app/lib/actions/login';
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [email, setEmail]             = useState('');
+    const [password, setPassword]       = useState('');
+    const [error, setError]             = useState('');
+    const [loading, setLoading]         = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [rateLimited, setRateLimited] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setRateLimited(false);
 
         try {
-            const result = await signIn('credentials', {
-                email,
-                password,
-                redirect: false,
-            });
+            const result = await loginAction({ email, password });
 
-            if (result?.error) {
-                setError('Invalid email or password. Please try again.');
+            if (result?.rateLimited) {
+                setRateLimited(true);
+                setError(result.error!);
+            } else if (result?.error) {
+                setError(result.error);
             } else {
                 router.push('/dashboard');
             }
@@ -49,18 +50,12 @@ export default function LoginPage() {
             
             {/* Floating Shapes */}
             <motion.div
-                animate={{ 
-                    y: [0, -20, 0],
-                    rotate: [0, 5, 0]
-                }}
+                animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute top-20 left-20 w-20 h-20 rounded-2xl bg-emerald-600/10 blur-xl"
             />
             <motion.div
-                animate={{ 
-                    y: [0, 20, 0],
-                    rotate: [0, -5, 0]
-                }}
+                animate={{ y: [0, 20, 0], rotate: [0, -5, 0] }}
                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute bottom-20 right-20 w-32 h-32 rounded-full bg-emerald-600/10 blur-xl"
             />
@@ -71,7 +66,6 @@ export default function LoginPage() {
                 transition={{ duration: 0.5 }}
                 className="max-w-md w-full relative z-10"
             >
-                {/* Card */}
                 <div className="bg-white rounded-3xl shadow-2xl shadow-stone-200/50 border border-stone-200 p-10 space-y-8">
                     
                     {/* Header */}
@@ -115,9 +109,16 @@ export default function LoginPage() {
                             <motion.div
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                className="bg-red-50 text-red-700 text-sm p-4 rounded-xl border border-red-100 flex items-start gap-3"
+                                className={`text-sm p-4 rounded-xl border flex items-start gap-3 ${
+                                    rateLimited
+                                        ? 'bg-amber-50 text-amber-700 border-amber-100'
+                                        : 'bg-red-50 text-red-700 border-red-100'
+                                }`}
                             >
-                                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                {rateLimited
+                                    ? <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
+                                    : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                                }
                                 <span>{error}</span>
                             </motion.div>
                         )}
@@ -128,16 +129,15 @@ export default function LoginPage() {
                                 <Mail className="w-3.5 h-3.5 text-emerald-600" />
                                 Email Address
                             </label>
-                            <div className="relative">
-                                <input
-                                    type="email"
-                                    required
-                                    className="w-full px-4 py-3.5 rounded-xl border-2 border-stone-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all text-stone-900 placeholder:text-stone-400"
-                                    placeholder="you@company.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                required
+                                disabled={rateLimited}
+                                className="w-full px-4 py-3.5 rounded-xl border-2 border-stone-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all text-stone-900 placeholder-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                                placeholder="you@company.com"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
                         </div>
 
                         {/* Password Field */}
@@ -150,7 +150,8 @@ export default function LoginPage() {
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     required
-                                    className="w-full px-4 py-3.5 pr-12 rounded-xl border-2 border-stone-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all text-stone-900 placeholder:text-stone-400"
+                                    disabled={rateLimited}
+                                    className="w-full px-4 py-3.5 pr-12 rounded-xl border-2 border-stone-200 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 outline-none transition-all text-stone-900 placeholder-stone-400 disabled:opacity-50 disabled:cursor-not-allowed"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -168,10 +169,10 @@ export default function LoginPage() {
                         {/* Submit Button */}
                         <motion.button
                             type="submit"
-                            disabled={loading}
-                            whileHover={{ scale: loading ? 1 : 1.02 }}
-                            whileTap={{ scale: loading ? 1 : 0.98 }}
-                            className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-semibold hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20"
+                            disabled={loading || rateLimited}
+                            whileHover={{ scale: loading || rateLimited ? 1 : 1.02 }}
+                            whileTap={{ scale: loading || rateLimited ? 1 : 0.98 }}
+                            className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-semibold hover:bg-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -181,6 +182,11 @@ export default function LoginPage() {
                                         className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                                     />
                                     Authenticating...
+                                </>
+                            ) : rateLimited ? (
+                                <>
+                                    <ShieldAlert className="w-5 h-5" />
+                                    Too many attempts
                                 </>
                             ) : (
                                 <>
@@ -214,7 +220,7 @@ export default function LoginPage() {
                     transition={{ delay: 0.7 }}
                     className="text-center mt-6 text-xs text-stone-400"
                 >
-                    🔒 Secured with NextAuth • Protected by middleware
+                    🔒 Secured with NextAuth • Rate limited by Upstash
                 </motion.div>
             </motion.div>
         </main>
