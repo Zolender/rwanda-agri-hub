@@ -1,7 +1,8 @@
 import { auth } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/app/lib/db";
-import ProfileForm from "../profile/ProfileForm";
+import ProfileForm from "./ProfileForm";
+
 export default async function ProfilePage() {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
