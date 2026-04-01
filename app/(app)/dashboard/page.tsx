@@ -37,6 +37,9 @@ export default async function DashboardPage() {
         })
     ]);
 
+                throw new Error("Sentry test — delete me");
+
+
     const totalValue = products.reduce((sum, p) => sum + (p.quantity * p.unitCostRwf), 0);
     const lowStockItems = products.filter(p => p.quantity <= p.reorderPointUnits).length;
     const lastUpdated = latestTransaction ? formatDistanceToNow(latestTransaction.createdAt, { addSuffix: true }) : "Never";

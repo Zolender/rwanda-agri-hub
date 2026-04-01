@@ -24,7 +24,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                     credentials.password as string,
                     user.password
                 );
-                throw new Error("Sentry test — delete me");
                 if (passwordsMatch) return user;
                 return null;
             },
