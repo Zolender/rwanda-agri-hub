@@ -8,42 +8,42 @@ import Credentials from "next-auth/providers/credentials";
 export const { handlers, auth, signIn, signOut } = NextAuth({
     ...authConfig,
     adapter: PrismaAdapter(prisma),
-    session: { strategy: "jwt" }, // JWT is more compatible with Edge
+    session: { strategy: "jwt" },
     providers: [
         Credentials({
-        async authorize(credentials) {
-            if (!credentials?.email || !credentials?.password) return null;
+            async authorize(credentials) {
+                if (!credentials?.email || !credentials?.password) return null;
 
-            const user = await prisma.user.findUnique({
-            where: { email: credentials.email as string },
-            });
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email as string },
+                });
 
-            if (!user || !user.password) return null;
+                if (!user || !user.password) return null;
 
-            const passwordsMatch = await bcrypt.compare(
-            credentials.password as string,
-            user.password
-            );
+                const passwordsMatch = await bcrypt.compare(
+                    credentials.password as string,
+                    user.password
+                );
 
-            if (passwordsMatch) return user;
-            
-            return null;
-        },
+                if (passwordsMatch) return user;
+                return null;
+            },
         }),
-    ],callbacks: {
+    ],
+    callbacks: {
         async jwt({ token, user }) {
-        // When the user logs in, 'user' exists. We attach the role to the token.
-        if (user) {
-            token.role = (user as any).role; 
-        }
-        return token;
+            if (user) {
+                token.id   = user.id;              
+                token.role = (user as any).role;
+            }
+            return token;
         },
         async session({ session, token }) {
-        // We pass the role from the token into the session object
-        if (token.role && session.user) {
-            session.user.role = token.role as string;
-        }
-        return session;
+            if (session.user) {
+                session.user.id   = token.id as string;   
+                session.user.role = token.role as string;
+            }
+            return session;
         },
     },
 });
