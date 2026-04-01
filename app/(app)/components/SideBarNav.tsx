@@ -143,8 +143,25 @@ export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Ro
                 )}
             </nav>
 
-            {/* ── Sign out ───────────────────────────────────────────────────── */}
-            <div className={`p-3 border-t ${isDark ? 'border-stone-800' : 'border-stone-200'}`}>
+           {/* ── Profile + Sign out ────────────────────────────────── */}
+            <div className={`p-3 border-t ${isDark ? 'border-stone-800' : 'border-stone-200'} space-y-1`}>
+                <Link
+                    href="/profile"
+                    className={`
+                        w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                        transition-colors
+                        ${pathname === '/profile'
+                            ? 'bg-linear-to-r from-emerald-600 to-emerald-500 text-white shadow-lg shadow-emerald-600/20'
+                            : isDark
+                            ? 'text-stone-400 hover:bg-stone-800 hover:text-stone-100'
+                            : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900'
+                        }
+                    `}
+                >
+                    <UserCircle className="w-5 h-5" />
+                    My Profile
+                </Link>
+
                 <button
                     onClick={() => signOut({ callbackUrl: '/login' })}
                     className={`
