@@ -67,11 +67,24 @@ export default function SidebarNav({ isDark, role }: { isDark: boolean; role: Ro
     const showAdminGroup    = hasAccess(adminGroup.minRole);
     const visibleAdminItems = adminGroup.items.filter(item => hasAccess(item.minRole));
 
+
+    const isActiveLink = (href: string) => {
+        if (href === "/") return pathname === "/";
+
+        // Exact match always counts
+        if (pathname === href) return true;
+
+        // If href is '/admin', do NOT treat it as a section root
+        if (href === "/admin") return false;
+
+        // For everything else, treat as section root
+        return pathname.startsWith(href + "/");
+    };
+
     // ── Shared link renderer ───────────────────────────────────────────────────
     const renderNavLink = (item: NavItem, index: number) => {
         const Icon = item.icon;
-        const isActive = pathname === item.href || (item.href.startsWith('/admin') && pathname.startsWith(item.href + '/'));
-
+        const isActive = isActiveLink(item.href);
         return (
             <motion.div
                 key={item.href}
